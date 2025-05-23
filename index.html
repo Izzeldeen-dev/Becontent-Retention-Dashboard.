@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer Retention Dashboard</title>
+    <title>Customer Retention Dashboard - Real-time Sync</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    
     <style>
         * {
             margin: 0;
@@ -16,6 +21,38 @@
             background-color: #f9fafb;
             color: #111827;
             line-height: 1.6;
+        }
+        
+        .sync-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 1000;
+        }
+        
+        .sync-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #10b981;
+            animation: pulse 2s infinite;
+        }
+        
+        .sync-dot.offline {
+            background: #ef4444;
+            animation: none;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
         }
         
         .container {
@@ -270,11 +307,6 @@
             animation: pulse 2s infinite;
         }
         
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-        
         .alerts-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -408,13 +440,6 @@
             position: relative;
         }
         
-        .pie-slice {
-            position: absolute;
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-        }
-        
         .chart-legend {
             display: flex;
             justify-content: center;
@@ -438,6 +463,8 @@
         
         .legend-color.healthy { background-color: #16a34a; }
         .legend-color.at-risk { background-color: #d97706; }
+        .legend-color.critical { background-color: #dc2626; }
+        
         .time-filter-section {
             background: white;
             padding: 24px;
@@ -614,6 +641,12 @@
     </style>
 </head>
 <body>
+    <!-- Sync Indicator -->
+    <div class="sync-indicator">
+        <div class="sync-dot" id="sync-dot"></div>
+        <span id="sync-status">Connected</span>
+    </div>
+
     <div class="container">
         <!-- Header -->
         <div class="header">
@@ -627,28 +660,28 @@
                 <div class="stat-icon blue">👥</div>
                 <div class="stat-info">
                     <h3>Total Customers</h3>
-                    <p id="total-customers">3</p>
+                    <p id="total-customers">0</p>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon green">✓</div>
                 <div class="stat-info">
                     <h3>Healthy</h3>
-                    <p id="healthy-customers" style="color: #16a34a;">1</p>
+                    <p id="healthy-customers" style="color: #16a34a;">0</p>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon yellow">⚠</div>
                 <div class="stat-info">
                     <h3>At Risk</h3>
-                    <p id="at-risk-customers" style="color: #d97706;">1</p>
+                    <p id="at-risk-customers" style="color: #d97706;">0</p>
                 </div>
             </div>
             <div class="stat-card">
                 <div class="stat-icon red">📉</div>
                 <div class="stat-info">
                     <h3>Critical</h3>
-                    <p id="critical-customers" style="color: #dc2626;">1</p>
+                    <p id="critical-customers" style="color: #dc2626;">0</p>
                 </div>
             </div>
         </div>
@@ -790,139 +823,134 @@
     </div>
 
     <script>
-        // Enhanced customer data with timeline
-        var customers = [
-            {
-                id: 1,
-                name: "Acme Corp",
-                nps: 9,
-                sessionShowUp: 95,
-                messageResponseTime: 1,
-                sessionScheduled: true,
-                participationLevel: 8.5,
-                surveyFilled: true,
-                startDate: "2023-01-15",
-                timeline: [
-                    { date: "2023-01-15", event: "Customer Onboarded", score: 7.5, type: "milestone" },
-                    { date: "2023-03-20", event: "First Health Check", score: 8.0, type: "assessment" },
-                    { date: "2023-06-10", event: "Quarterly Review", score: 8.3, type: "review" },
-                    { date: "2023-09-15", event: "Contract Renewal", score: 8.7, type: "milestone" },
-                    { date: "2024-01-20", event: "Annual Review", score: 9.0, type: "review" },
-                    { date: "2024-12-01", event: "Current Status", score: 9.0, type: "current" }
-                ]
-            },
-            {
-                id: 2,
-                name: "TechStart Inc",
-                nps: 7,
-                sessionShowUp: 75,
-                messageResponseTime: 2.5,
-                sessionScheduled: false,
-                participationLevel: 6,
-                surveyFilled: true,
-                startDate: "2023-06-01",
-                timeline: [
-                    { date: "2023-06-01", event: "Customer Onboarded", score: 8.2, type: "milestone" },
-                    { date: "2023-08-15", event: "First Health Check", score: 7.8, type: "assessment" },
-                    { date: "2023-11-30", event: "Quarterly Review", score: 7.5, type: "review" },
-                    { date: "2024-03-10", event: "Support Escalation", score: 7.2, type: "incident" },
-                    { date: "2024-06-01", event: "Contract Renewal", score: 7.1, type: "milestone" },
-                    { date: "2024-12-01", event: "Current Status", score: 7.1, type: "current" }
-                ]
-            },
-            {
-                id: 3,
-                name: "Global Solutions",
-                nps: 4,
-                sessionShowUp: 45,
-                messageResponseTime: 5,
-                sessionScheduled: false,
-                participationLevel: 3,
-                surveyFilled: false,
-                startDate: "2024-02-10",
-                timeline: [
-                    { date: "2024-02-10", event: "Customer Onboarded", score: 6.8, type: "milestone" },
-                    { date: "2024-04-15", event: "First Health Check", score: 6.2, type: "assessment" },
-                    { date: "2024-07-20", event: "Quarterly Review", score: 5.5, type: "review" },
-                    { date: "2024-09-30", event: "Escalation Required", score: 4.8, type: "incident" },
-                    { date: "2024-12-01", event: "Critical Status", score: 4.2, type: "current" }
-                ]
-            }
-        ];
+        // ============================================
+        // FIREBASE CONFIGURATION
+        // ============================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNMzO17wu4NOaR2TjT419f0IzB-pWzU5M",
+            authDomain: "becontent-33415.firebaseapp.com",
+            databaseURL: "https://becontent-33415-default-rtdb.asia-southeast1.firebasedatabase.app",
+            projectId: "becontent-33415",
+            storageBucket: "becontent-33415.firebasestorage.app",
+            messagingSenderId: "967557303388",
+            appId: "1:967557303388:web:b263a25fea91824710ea99",
+            measurementId: "G-Z23YF3S7VQ"
+        };
+
+        // Initialize Firebase
+        let database;
+        let customersRef;
+        
+        try {
+            firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+            customersRef = database.ref('customers');
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+        }
+
+        // Local customers array
+        let customers = [];
+        let dismissedAlerts = new Set();
+
+        // Calculate engagement score
+        function calculateEngagementScore(customer) {
+            const sessionScore = customer.sessionShowUp >= 90 ? 10 : customer.sessionShowUp >= 60 ? 7.5 : 3;
+            const responseScore = customer.messageResponseTime <= 2 ? 10 : customer.messageResponseTime <= 3 ? 7.5 : 3;
+            const scheduleScore = customer.sessionScheduled ? 10 : 3;
+            const participationScore = customer.participationLevel;
+            const surveyScore = customer.surveyFilled ? 10 : 3;
+
+            return (sessionScore * 0.4) + (responseScore * 0.1) + (scheduleScore * 0.05) + (participationScore * 0.35) + (surveyScore * 0.1);
+        }
+
+        // Calculate health score
+        function calculateHealthScore(customer) {
+            const npsScore = customer.nps;
+            const engagementScore = calculateEngagementScore(customer);
+            return (npsScore * 0.6) + (engagementScore * 0.4);
+        }
+
+        // Get health category
+        function getHealthCategory(score) {
+            if (score >= 8) return { color: 'healthy', label: 'Healthy' };
+            if (score >= 7) return { color: 'at-risk', label: 'At Risk' };
+            return { color: 'critical', label: 'Critical' };
+        }
 
         // Time frame analysis functions
         function updateTimeFrame() {
-            var period = document.getElementById('time-period').value;
-            var viewType = document.getElementById('view-type').value;
+            const period = document.getElementById('time-period').value;
+            const viewType = document.getElementById('view-type').value;
             
             updateTimeInsights(period);
             updateTimelineView(viewType, period);
         }
 
         function updateTimeInsights(period) {
-            var insights = calculateTimeInsights(period);
-            var insightsContainer = document.getElementById('time-insights');
+            const insights = calculateTimeInsights(period);
+            const insightsContainer = document.getElementById('time-insights');
             
-            insightsContainer.innerHTML = 
-                '<div class="insight-card">' +
-                    '<h4>📈 Average Relationship</h4>' +
-                    '<p>' + insights.avgRelationship + '</p>' +
-                '</div>' +
-                '<div class="insight-card">' +
-                    '<h4>🎯 Retention Rate</h4>' +
-                    '<p>' + insights.retentionRate + '</p>' +
-                '</div>' +
-                '<div class="insight-card">' +
-                    '<h4>⚡ Health Trend</h4>' +
-                    '<p>' + insights.healthTrend + '</p>' +
-                '</div>' +
-                '<div class="insight-card">' +
-                    '<h4>🚨 Risk Analysis</h4>' +
-                    '<p>' + insights.riskAnalysis + '</p>' +
-                '</div>';
+            insightsContainer.innerHTML = `
+                <div class="insight-card">
+                    <h4>📈 Average Relationship</h4>
+                    <p>${insights.avgRelationship}</p>
+                </div>
+                <div class="insight-card">
+                    <h4>🎯 Retention Rate</h4>
+                    <p>${insights.retentionRate}</p>
+                </div>
+                <div class="insight-card">
+                    <h4>⚡ Health Trend</h4>
+                    <p>${insights.healthTrend}</p>
+                </div>
+                <div class="insight-card">
+                    <h4>🚨 Risk Analysis</h4>
+                    <p>${insights.riskAnalysis}</p>
+                </div>`;
         }
 
         function calculateTimeInsights(period) {
-            var totalMonths = 0;
-            var healthChanges = [];
-            var retainedCustomers = 0;
+            let totalMonths = 0;
+            const healthChanges = [];
+            let retainedCustomers = 0;
             
-            for (var i = 0; i < customers.length; i++) {
-                var customer = customers[i];
+            customers.forEach(customer => {
                 if (customer.startDate) {
-                    var startDate = new Date(customer.startDate);
-                    var currentDate = new Date();
-                    var monthsDiff = (currentDate - startDate) / (1000 * 60 * 60 * 24 * 30);
+                    const startDate = new Date(customer.startDate);
+                    const currentDate = new Date();
+                    const monthsDiff = (currentDate - startDate) / (1000 * 60 * 60 * 24 * 30);
                     totalMonths += monthsDiff;
                 }
                 
                 if (customer.timeline && customer.timeline.length > 1) {
-                    var firstScore = customer.timeline[0].score;
-                    var lastScore = customer.timeline[customer.timeline.length - 1].score;
+                    const firstScore = customer.timeline[0].score;
+                    const lastScore = customer.timeline[customer.timeline.length - 1].score;
                     healthChanges.push(lastScore - firstScore);
                 }
                 
                 if (calculateHealthScore(customer) >= 7) {
                     retainedCustomers++;
                 }
-            }
+            });
             
-            var avgRelationship = customers.length > 0 ? (totalMonths / customers.length).toFixed(1) : 0;
-            var retentionRate = customers.length > 0 ? ((retainedCustomers / customers.length) * 100).toFixed(0) : 0;
-            var avgHealthChange = healthChanges.length > 0 ? healthChanges.reduce(function(a, b) { return a + b; }, 0) / healthChanges.length : 0;
-            var trendDirection = avgHealthChange > 0 ? 'Improving' : avgHealthChange < 0 ? 'Declining' : 'Stable';
+            const avgRelationship = customers.length > 0 ? (totalMonths / customers.length).toFixed(1) : 0;
+            const retentionRate = customers.length > 0 ? ((retainedCustomers / customers.length) * 100).toFixed(0) : 0;
+            const avgHealthChange = healthChanges.length > 0 ? 
+                healthChanges.reduce((a, b) => a + b, 0) / healthChanges.length : 0;
+            const trendDirection = avgHealthChange > 0 ? 'Improving' : avgHealthChange < 0 ? 'Declining' : 'Stable';
             
             return {
-                avgRelationship: '<strong>' + avgRelationship + ' months</strong>',
-                retentionRate: '<strong>' + retentionRate + '%</strong> healthy customers',
-                healthTrend: '<strong>' + trendDirection + ' (' + (avgHealthChange > 0 ? '+' : '') + avgHealthChange.toFixed(1) + ')</strong>',
-                riskAnalysis: '<strong>' + customers.filter(function(c) { return calculateHealthScore(c) < 7; }).length + '</strong> customers at risk'
+                avgRelationship: `<strong>${avgRelationship} months</strong>`,
+                retentionRate: `<strong>${retentionRate}%</strong> healthy customers`,
+                healthTrend: `<strong>${trendDirection} (${avgHealthChange > 0 ? '+' : ''}${avgHealthChange.toFixed(1)})</strong>`,
+                riskAnalysis: `<strong>${customers.filter(c => calculateHealthScore(c) < 7).length}</strong> customers at risk`
             };
         }
 
         function updateTimelineView(viewType, period) {
             // Remove existing timeline
-            var existingTimeline = document.querySelector('.timeline-view');
+            const existingTimeline = document.querySelector('.timeline-view');
             if (existingTimeline) {
                 existingTimeline.remove();
             }
@@ -933,31 +961,29 @@
         }
 
         function createTimelineView(viewType, period) {
-            var timelineDiv = document.createElement('div');
+            const timelineDiv = document.createElement('div');
             timelineDiv.className = 'timeline-view';
             
-            timelineDiv.innerHTML = 
-                '<div class="timeline-header">' +
-                    '<h3>' + (viewType === 'timeline' ? '📋 Customer Timeline' : '📈 Trend Analysis') + '</h3>' +
-                    '<span style="font-size: 0.875rem; color: #6b7280;">Showing ' + (period === 'lifetime' ? 'all historical data' : period) + '</span>' +
-                '</div>' +
-                '<div class="timeline-container">' +
-                    '<div class="timeline-line"></div>' +
-                    generateTimelineItems(viewType, period) +
-                '</div>';
+            timelineDiv.innerHTML = `
+                <div class="timeline-header">
+                    <h3>${viewType === 'timeline' ? '📋 Customer Timeline' : '📈 Trend Analysis'}</h3>
+                    <span style="font-size: 0.875rem; color: #6b7280;">Showing ${period === 'lifetime' ? 'all historical data' : period}</span>
+                </div>
+                <div class="timeline-container">
+                    <div class="timeline-line"></div>
+                    ${generateTimelineItems(viewType, period)}
+                </div>`;
             
-            var chartsSection = document.querySelector('.charts-section');
+            const chartsSection = document.querySelector('.charts-section');
             chartsSection.parentNode.insertBefore(timelineDiv, chartsSection);
         }
 
         function generateTimelineItems(viewType, period) {
-            var allEvents = [];
+            const allEvents = [];
             
-            for (var i = 0; i < customers.length; i++) {
-                var customer = customers[i];
+            customers.forEach(customer => {
                 if (customer.timeline) {
-                    for (var j = 0; j < customer.timeline.length; j++) {
-                        var event = customer.timeline[j];
+                    customer.timeline.forEach(event => {
                         allEvents.push({
                             date: event.date,
                             event: event.event,
@@ -966,18 +992,16 @@
                             customerName: customer.name,
                             customerId: customer.id
                         });
-                    }
+                    });
                 }
-            }
+            });
             
             // Sort by date
-            allEvents.sort(function(a, b) {
-                return new Date(a.date) - new Date(b.date);
-            });
+            allEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
             
             // Filter by period if not lifetime
             if (period !== 'lifetime') {
-                var cutoffDate = new Date();
+                const cutoffDate = new Date();
                 switch(period) {
                     case '1month':
                         cutoffDate.setMonth(cutoffDate.getMonth() - 1);
@@ -992,75 +1016,42 @@
                         cutoffDate.setFullYear(cutoffDate.getFullYear() - 1);
                         break;
                 }
-                allEvents = allEvents.filter(function(event) {
-                    return new Date(event.date) >= cutoffDate;
-                });
+                allEvents = allEvents.filter(event => new Date(event.date) >= cutoffDate);
             }
             
-            var timelineHTML = '';
-            for (var i = 0; i < allEvents.length; i++) {
-                var event = allEvents[i];
-                var eventClass = event.score < 7 ? 'critical' : event.score < 8 ? 'warning' : '';
-                var formattedDate = new Date(event.date).toLocaleDateString('en-US', { 
+            let timelineHTML = '';
+            allEvents.forEach(event => {
+                const eventClass = event.score < 7 ? 'critical' : event.score < 8 ? 'warning' : '';
+                const formattedDate = new Date(event.date).toLocaleDateString('en-US', { 
                     year: 'numeric', 
                     month: 'short', 
                     day: 'numeric' 
                 });
                 
-                timelineHTML += 
-                    '<div class="timeline-item ' + eventClass + '">' +
-                        '<div class="timeline-date">' + formattedDate + '</div>' +
-                        '<div class="timeline-content">' +
-                            '<h4>' + event.customerName + ': ' + event.event + '</h4>' +
-                            '<p>Health Score: ' + event.score.toFixed(1) + ' | Type: ' + event.type + '</p>' +
-                        '</div>' +
-                    '</div>';
-            }
+                timelineHTML += `
+                    <div class="timeline-item ${eventClass}">
+                        <div class="timeline-date">${formattedDate}</div>
+                        <div class="timeline-content">
+                            <h4>${event.customerName}: ${event.event}</h4>
+                            <p>Health Score: ${event.score.toFixed(1)} | Type: ${event.type}</p>
+                        </div>
+                    </div>`;
+            });
             
-            return timelineHTML;
-        }
-
-        // Initialize time frame on load
-        function initializeTimeFrame() {
-            updateTimeFrame();
-        }
-
-        // Calculate engagement score
-        function calculateEngagementScore(customer) {
-            var sessionScore = customer.sessionShowUp >= 90 ? 10 : customer.sessionShowUp >= 60 ? 7.5 : 3;
-            var responseScore = customer.messageResponseTime <= 2 ? 10 : customer.messageResponseTime <= 3 ? 7.5 : 3;
-            var scheduleScore = customer.sessionScheduled ? 10 : 3;
-            var participationScore = customer.participationLevel;
-            var surveyScore = customer.surveyFilled ? 10 : 3;
-
-            return (sessionScore * 0.4) + (responseScore * 0.1) + (scheduleScore * 0.05) + (participationScore * 0.35) + (surveyScore * 0.1);
-        }
-
-        // Calculate health score
-        function calculateHealthScore(customer) {
-            var npsScore = customer.nps;
-            var engagementScore = calculateEngagementScore(customer);
-            return (npsScore * 0.6) + (engagementScore * 0.4);
-        }
-
-        // Get health category
-        function getHealthCategory(score) {
-            if (score >= 8) return { color: 'healthy', label: 'Healthy' };
-            if (score >= 7) return { color: 'at-risk', label: 'At Risk' };
-            return { color: 'critical', label: 'Critical' };
+            return timelineHTML || '<p style="color: #6b7280; padding: 20px;">No timeline data available for this period</p>';
         }
 
         // Update dashboard
         function updateDashboard() {
-            var stats = { total: customers.length, healthy: 0, atRisk: 0, critical: 0 };
+            const stats = { total: customers.length, healthy: 0, atRisk: 0, critical: 0 };
             
-            for (var i = 0; i < customers.length; i++) {
-                var score = calculateHealthScore(customers[i]);
-                var category = getHealthCategory(score);
+            customers.forEach(customer => {
+                const score = calculateHealthScore(customer);
+                const category = getHealthCategory(score);
                 if (category.color === 'healthy') stats.healthy++;
                 else if (category.color === 'at-risk') stats.atRisk++;
                 else stats.critical++;
-            }
+            });
 
             document.getElementById('total-customers').textContent = stats.total;
             document.getElementById('healthy-customers').textContent = stats.healthy;
@@ -1070,193 +1061,78 @@
             updateTable();
             updateAlerts();
             updateCharts();
-        }
-
-        // Update charts
-        function updateCharts() {
-            updateScoreChart();
-            updateDistributionChart();
-        }
-
-        // Update score chart (bar chart showing individual customer scores)
-        function updateScoreChart() {
-            var chartContainer = document.getElementById('score-chart');
-            chartContainer.innerHTML = '';
-
-            var barChart = document.createElement('div');
-            barChart.className = 'bar-chart';
-
-            for (var i = 0; i < customers.length; i++) {
-                var customer = customers[i];
-                var score = calculateHealthScore(customer);
-                var category = getHealthCategory(score);
-                
-                var barContainer = document.createElement('div');
-                barContainer.style.flex = '1';
-                barContainer.style.position = 'relative';
-                barContainer.style.height = '100%';
-                
-                var bar = document.createElement('div');
-                bar.className = 'bar ' + category.color;
-                bar.style.height = (score / 10 * 100) + '%';
-                bar.textContent = score.toFixed(1);
-                
-                var label = document.createElement('div');
-                label.className = 'bar-label';
-                label.textContent = customer.name.length > 10 ? customer.name.substring(0, 10) + '...' : customer.name;
-                
-                barContainer.appendChild(bar);
-                barContainer.appendChild(label);
-                barChart.appendChild(barContainer);
-            }
-
-            chartContainer.appendChild(barChart);
-        }
-
-        // Update distribution chart (pie chart showing healthy vs at-risk vs critical)
-        function updateDistributionChart() {
-            var chartContainer = document.getElementById('distribution-chart');
-            chartContainer.innerHTML = '';
-
-            var stats = { healthy: 0, atRisk: 0, critical: 0 };
-            
-            for (var i = 0; i < customers.length; i++) {
-                var score = calculateHealthScore(customers[i]);
-                var category = getHealthCategory(score);
-                if (category.color === 'healthy') stats.healthy++;
-                else if (category.color === 'at-risk') stats.atRisk++;
-                else stats.critical++;
-            }
-
-            var total = customers.length;
-            if (total === 0) {
-                chartContainer.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 60px;">No customers to display</div>';
-                return;
-            }
-
-            // Create simple pie chart using CSS
-            var pieChart = document.createElement('div');
-            pieChart.className = 'pie-chart';
-            
-            var healthyPercent = (stats.healthy / total * 100);
-            var atRiskPercent = (stats.atRisk / total * 100);
-            var criticalPercent = (stats.critical / total * 100);
-
-            // Create pie chart visualization (simplified)
-            var chartData = [
-                { label: 'Healthy', count: stats.healthy, percent: healthyPercent, color: '#16a34a' },
-                { label: 'At Risk', count: stats.atRisk, percent: atRiskPercent, color: '#d97706' },
-                { label: 'Critical', count: stats.critical, percent: criticalPercent, color: '#dc2626' }
-            ];
-
-            // Simple pie chart representation
-            var pieContainer = document.createElement('div');
-            pieContainer.style.width = '200px';
-            pieContainer.style.height = '200px';
-            pieContainer.style.margin = '0 auto';
-            pieContainer.style.borderRadius = '50%';
-            pieContainer.style.background = 'conic-gradient(' +
-                '#16a34a 0% ' + healthyPercent + '%, ' +
-                '#d97706 ' + healthyPercent + '% ' + (healthyPercent + atRiskPercent) + '%, ' +
-                '#dc2626 ' + (healthyPercent + atRiskPercent) + '% 100%)';
-
-            chartContainer.appendChild(pieContainer);
-
-            // Add legend
-            var legend = document.createElement('div');
-            legend.className = 'chart-legend';
-            
-            for (var i = 0; i < chartData.length; i++) {
-                if (chartData[i].count > 0) {
-                    var legendItem = document.createElement('div');
-                    legendItem.className = 'legend-item';
-                    
-                    var colorBox = document.createElement('div');
-                    colorBox.className = 'legend-color';
-                    colorBox.style.backgroundColor = chartData[i].color;
-                    
-                    var text = document.createElement('span');
-                    text.textContent = chartData[i].label + ' (' + chartData[i].count + ')';
-                    
-                    legendItem.appendChild(colorBox);
-                    legendItem.appendChild(text);
-                    legend.appendChild(legendItem);
-                }
-            }
-            
-            chartContainer.appendChild(legend);
+            updateTimeFrame();
         }
 
         // Update alerts
         function updateAlerts() {
-            var alertsContainer = document.getElementById('alerts-container');
-            var alertsSection = document.getElementById('alerts-section');
+            const alertsContainer = document.getElementById('alerts-container');
+            const alertsSection = document.getElementById('alerts-section');
             alertsContainer.innerHTML = '';
-            var alertCount = 0;
-            var urgentCount = 0;
+            let alertCount = 0;
+            let urgentCount = 0;
 
-            for (var i = 0; i < customers.length; i++) {
-                var customer = customers[i];
-                var score = calculateHealthScore(customer);
-                var category = getHealthCategory(score);
+            customers.forEach(customer => {
+                const score = calculateHealthScore(customer);
+                const category = getHealthCategory(score);
 
                 // Critical alerts
-                if (category.color === 'critical') {
-                    var alertDiv = document.createElement('div');
+                if (category.color === 'critical' && !dismissedAlerts.has(`critical-${customer.id}`)) {
+                    const alertDiv = document.createElement('div');
                     alertDiv.className = 'alert-item critical';
-                    alertDiv.innerHTML = 
-                        '<div class="alert-content">' +
-                            '<h4>' + customer.name + '</h4>' +
-                            '<p>Customer is in critical status (' + score.toFixed(1) + ')</p>' +
-                        '</div>' +
-                        '<button class="dismiss-btn" onclick="dismissAlert(this)">✕</button>';
+                    alertDiv.innerHTML = `
+                        <div class="alert-content">
+                            <h4>${customer.name}</h4>
+                            <p>Customer is in critical status (${score.toFixed(1)})</p>
+                        </div>
+                        <button class="dismiss-btn" onclick="dismissAlert('critical-${customer.id}', this)">✕</button>`;
                     alertsContainer.appendChild(alertDiv);
                     alertCount++;
                     urgentCount++;
                 }
 
                 // At-risk alerts
-                if (category.color === 'at-risk') {
-                    var alertDiv = document.createElement('div');
+                if (category.color === 'at-risk' && !dismissedAlerts.has(`at-risk-${customer.id}`)) {
+                    const alertDiv = document.createElement('div');
                     alertDiv.className = 'alert-item warning';
-                    alertDiv.innerHTML = 
-                        '<div class="alert-content">' +
-                            '<h4>' + customer.name + '</h4>' +
-                            '<p>Customer is at risk (' + score.toFixed(1) + ')</p>' +
-                        '</div>' +
-                        '<button class="dismiss-btn" onclick="dismissAlert(this)">✕</button>';
+                    alertDiv.innerHTML = `
+                        <div class="alert-content">
+                            <h4>${customer.name}</h4>
+                            <p>Customer is at risk (${score.toFixed(1)})</p>
+                        </div>
+                        <button class="dismiss-btn" onclick="dismissAlert('at-risk-${customer.id}', this)">✕</button>`;
                     alertsContainer.appendChild(alertDiv);
                     alertCount++;
                 }
 
                 // Low attendance alerts
-                if (customer.sessionShowUp < 60) {
-                    var alertDiv = document.createElement('div');
+                if (customer.sessionShowUp < 60 && !dismissedAlerts.has(`attendance-${customer.id}`)) {
+                    const alertDiv = document.createElement('div');
                     alertDiv.className = 'alert-item info';
-                    alertDiv.innerHTML = 
-                        '<div class="alert-content">' +
-                            '<h4>' + customer.name + '</h4>' +
-                            '<p>Low session attendance: ' + customer.sessionShowUp + '%</p>' +
-                        '</div>' +
-                        '<button class="dismiss-btn" onclick="dismissAlert(this)">✕</button>';
+                    alertDiv.innerHTML = `
+                        <div class="alert-content">
+                            <h4>${customer.name}</h4>
+                            <p>Low session attendance: ${customer.sessionShowUp}%</p>
+                        </div>
+                        <button class="dismiss-btn" onclick="dismissAlert('attendance-${customer.id}', this)">✕</button>`;
                     alertsContainer.appendChild(alertDiv);
                     alertCount++;
                 }
 
                 // Slow response alerts
-                if (customer.messageResponseTime > 3) {
-                    var alertDiv = document.createElement('div');
+                if (customer.messageResponseTime > 3 && !dismissedAlerts.has(`response-${customer.id}`)) {
+                    const alertDiv = document.createElement('div');
                     alertDiv.className = 'alert-item info';
-                    alertDiv.innerHTML = 
-                        '<div class="alert-content">' +
-                            '<h4>' + customer.name + '</h4>' +
-                            '<p>Slow response time: ' + customer.messageResponseTime + ' days</p>' +
-                        '</div>' +
-                        '<button class="dismiss-btn" onclick="dismissAlert(this)">✕</button>';
+                    alertDiv.innerHTML = `
+                        <div class="alert-content">
+                            <h4>${customer.name}</h4>
+                            <p>Slow response time: ${customer.messageResponseTime} days</p>
+                        </div>
+                        <button class="dismiss-btn" onclick="dismissAlert('response-${customer.id}', this)">✕</button>`;
                     alertsContainer.appendChild(alertDiv);
                     alertCount++;
                 }
-            }
+            });
 
             document.getElementById('alert-count').textContent = alertCount;
             document.getElementById('urgent-badge').style.display = urgentCount > 0 ? 'inline' : 'none';
@@ -1267,12 +1143,13 @@
         }
 
         // Dismiss alert
-        function dismissAlert(button) {
+        function dismissAlert(alertId, button) {
+            dismissedAlerts.add(alertId);
             button.parentElement.remove();
-            var alertCount = document.querySelectorAll('.alert-item').length;
+            const alertCount = document.querySelectorAll('.alert-item').length;
             document.getElementById('alert-count').textContent = alertCount;
             
-            var urgentAlerts = document.querySelectorAll('.alert-item.critical').length;
+            const urgentAlerts = document.querySelectorAll('.alert-item.critical').length;
             document.getElementById('urgent-badge').style.display = urgentAlerts > 0 ? 'inline' : 'none';
             document.getElementById('urgent-badge').textContent = urgentAlerts + ' Urgent';
             
@@ -1282,65 +1159,173 @@
             }
         }
 
+        // Update charts
+        function updateCharts() {
+            updateScoreChart();
+            updateDistributionChart();
+        }
+
+        // Update score chart
+        function updateScoreChart() {
+            const chartContainer = document.getElementById('score-chart');
+            chartContainer.innerHTML = '';
+
+            if (customers.length === 0) {
+                chartContainer.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 60px;">No customers to display</div>';
+                return;
+            }
+
+            const barChart = document.createElement('div');
+            barChart.className = 'bar-chart';
+
+            customers.forEach(customer => {
+                const score = calculateHealthScore(customer);
+                const category = getHealthCategory(score);
+                
+                const barContainer = document.createElement('div');
+                barContainer.style.flex = '1';
+                barContainer.style.position = 'relative';
+                barContainer.style.height = '100%';
+                
+                const bar = document.createElement('div');
+                bar.className = `bar ${category.color}`;
+                bar.style.height = `${(score / 10 * 100)}%`;
+                bar.textContent = score.toFixed(1);
+                
+                const label = document.createElement('div');
+                label.className = 'bar-label';
+                label.textContent = customer.name.length > 10 ? customer.name.substring(0, 10) + '...' : customer.name;
+                
+                barContainer.appendChild(bar);
+                barContainer.appendChild(label);
+                barChart.appendChild(barContainer);
+            });
+
+            chartContainer.appendChild(barChart);
+        }
+
+        // Update distribution chart
+        function updateDistributionChart() {
+            const chartContainer = document.getElementById('distribution-chart');
+            chartContainer.innerHTML = '';
+
+            const stats = { healthy: 0, atRisk: 0, critical: 0 };
+            
+            customers.forEach(customer => {
+                const score = calculateHealthScore(customer);
+                const category = getHealthCategory(score);
+                if (category.color === 'healthy') stats.healthy++;
+                else if (category.color === 'at-risk') stats.atRisk++;
+                else stats.critical++;
+            });
+
+            const total = customers.length;
+            if (total === 0) {
+                chartContainer.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 60px;">No customers to display</div>';
+                return;
+            }
+
+            const healthyPercent = (stats.healthy / total * 100);
+            const atRiskPercent = (stats.atRisk / total * 100);
+            const criticalPercent = (stats.critical / total * 100);
+
+            // Create pie chart visualization
+            const pieContainer = document.createElement('div');
+            pieContainer.style.width = '200px';
+            pieContainer.style.height = '200px';
+            pieContainer.style.margin = '0 auto';
+            pieContainer.style.borderRadius = '50%';
+            pieContainer.style.background = `conic-gradient(
+                #16a34a 0% ${healthyPercent}%, 
+                #d97706 ${healthyPercent}% ${healthyPercent + atRiskPercent}%, 
+                #dc2626 ${healthyPercent + atRiskPercent}% 100%)`;
+
+            chartContainer.appendChild(pieContainer);
+
+            // Add legend
+            const legend = document.createElement('div');
+            legend.className = 'chart-legend';
+            
+            const chartData = [
+                { label: 'Healthy', count: stats.healthy, color: '#16a34a' },
+                { label: 'At Risk', count: stats.atRisk, color: '#d97706' },
+                { label: 'Critical', count: stats.critical, color: '#dc2626' }
+            ];
+
+            chartData.forEach(item => {
+                if (item.count > 0) {
+                    const legendItem = document.createElement('div');
+                    legendItem.className = 'legend-item';
+                    
+                    const colorBox = document.createElement('div');
+                    colorBox.className = 'legend-color';
+                    colorBox.style.backgroundColor = item.color;
+                    
+                    const text = document.createElement('span');
+                    text.textContent = `${item.label} (${item.count})`;
+                    
+                    legendItem.appendChild(colorBox);
+                    legendItem.appendChild(text);
+                    legend.appendChild(legendItem);
+                }
+            });
+            
+            chartContainer.appendChild(legend);
+        }
+
         // Update table
         function updateTable() {
-            var tableBody = document.getElementById('customer-table');
+            const tableBody = document.getElementById('customer-table');
             tableBody.innerHTML = '';
 
-            for (var i = 0; i < customers.length; i++) {
-                var customer = customers[i];
-                var healthScore = calculateHealthScore(customer);
-                var engagementScore = calculateEngagementScore(customer);
-                var category = getHealthCategory(healthScore);
+            customers.forEach(customer => {
+                const healthScore = calculateHealthScore(customer);
+                const engagementScore = calculateEngagementScore(customer);
+                const category = getHealthCategory(healthScore);
 
-                var row = document.createElement('tr');
-                row.innerHTML = 
-                    '<td><strong>' + customer.name + '</strong></td>' +
-                    '<td>' + customer.nps.toFixed(1) + '</td>' +
-                    '<td>' + engagementScore.toFixed(1) + '</td>' +
-                    '<td><strong>' + healthScore.toFixed(1) + '</strong></td>' +
-                    '<td><span class="status-badge ' + category.color + '">' + category.label + '</span></td>' +
-                    '<td class="details">' +
-                        'Show Up: ' + customer.sessionShowUp + '%<br>' +
-                        'Response: ' + customer.messageResponseTime + 'd<br>' +
-                        'Scheduled: ' + (customer.sessionScheduled ? 'Yes' : 'No') + '<br>' +
-                        'Participation: ' + customer.participationLevel + '<br>' +
-                        'Survey: ' + (customer.surveyFilled ? 'Yes' : 'No') +
-                    '</td>' +
-                    '<td><button class="delete-btn" onclick="deleteCustomer(' + customer.id + ')">🗑</button></td>';
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${customer.name}</strong></td>
+                    <td>${customer.nps.toFixed(1)}</td>
+                    <td>${engagementScore.toFixed(1)}</td>
+                    <td><strong>${healthScore.toFixed(1)}</strong></td>
+                    <td><span class="status-badge ${category.color}">${category.label}</span></td>
+                    <td class="details">
+                        Show Up: ${customer.sessionShowUp}%<br>
+                        Response: ${customer.messageResponseTime}d<br>
+                        Scheduled: ${customer.sessionScheduled ? 'Yes' : 'No'}<br>
+                        Participation: ${customer.participationLevel}<br>
+                        Survey: ${customer.surveyFilled ? 'Yes' : 'No'}
+                    </td>
+                    <td><button class="delete-btn" onclick="deleteCustomer('${customer.id}')">🗑</button></td>`;
                 
                 tableBody.appendChild(row);
-            }
+            });
         }
 
         // Toggle form
         function toggleForm() {
-            var form = document.getElementById('customer-form');
-            if (form.classList.contains('hidden')) {
-                form.classList.remove('hidden');
-            } else {
-                form.classList.add('hidden');
-            }
+            const form = document.getElementById('customer-form');
+            form.classList.toggle('hidden');
         }
 
         // Add customer
         function addCustomer() {
-            var name = document.getElementById('name').value.trim();
-            var nps = parseFloat(document.getElementById('nps').value) || 7;
-            var sessionShowUp = parseInt(document.getElementById('showup').value) || 85;
-            var messageResponseTime = parseFloat(document.getElementById('response').value) || 2;
-            var participationLevel = parseFloat(document.getElementById('participation').value) || 7;
-            var sessionScheduled = document.getElementById('scheduled').value === 'true';
-            var surveyFilled = document.getElementById('survey').value === 'true';
+            const name = document.getElementById('name').value.trim();
+            const nps = parseFloat(document.getElementById('nps').value) || 7;
+            const sessionShowUp = parseInt(document.getElementById('showup').value) || 85;
+            const messageResponseTime = parseFloat(document.getElementById('response').value) || 2;
+            const participationLevel = parseFloat(document.getElementById('participation').value) || 7;
+            const sessionScheduled = document.getElementById('scheduled').value === 'true';
+            const surveyFilled = document.getElementById('survey').value === 'true';
 
             if (!name) {
                 alert('Please enter a customer name');
                 return;
             }
 
-            var newCustomer = {
-                id: Date.now(),
-                name: name,
+            const currentDate = new Date().toISOString().split('T')[0];
+            const tempCustomer = {
                 nps: nps,
                 sessionShowUp: sessionShowUp,
                 messageResponseTime: messageResponseTime,
@@ -1348,59 +1333,10 @@
                 participationLevel: participationLevel,
                 surveyFilled: surveyFilled
             };
+            const currentScore = calculateHealthScore(tempCustomer);
 
-            customers.push(newCustomer);
-            updateDashboard();
-
-            // Clear form
-            document.getElementById('name').value = '';
-            document.getElementById('nps').value = '7';
-            document.getElementById('showup').value = '85';
-            document.getElementById('response').value = '2';
-            document.getElementById('participation').value = '7';
-            document.getElementById('scheduled').value = 'true';
-            document.getElementById('survey').value = 'true';
-
-            toggleForm();
-            alert('Customer "' + name + '" added successfully!');
-        }
-
-        // Delete customer
-        function deleteCustomer(id) {
-            customers = customers.filter(function(customer) {
-                return customer.id !== id;
-            });
-            updateDashboard();
-        }
-
-        // Add customer with timeline support
-        function addCustomer() {
-            var name = document.getElementById('name').value.trim();
-            var nps = parseFloat(document.getElementById('nps').value) || 7;
-            var sessionShowUp = parseInt(document.getElementById('showup').value) || 85;
-            var messageResponseTime = parseFloat(document.getElementById('response').value) || 2;
-            var participationLevel = parseFloat(document.getElementById('participation').value) || 7;
-            var sessionScheduled = document.getElementById('scheduled').value === 'true';
-            var surveyFilled = document.getElementById('survey').value === 'true';
-
-            if (!name) {
-                alert('Please enter a customer name');
-                return;
-            }
-
-            var currentDate = new Date().toISOString().split('T')[0];
-            var tempCustomer = {
-                nps: nps,
-                sessionShowUp: sessionShowUp,
-                messageResponseTime: messageResponseTime,
-                sessionScheduled: sessionScheduled,
-                participationLevel: participationLevel,
-                surveyFilled: surveyFilled
-            };
-            var currentScore = calculateHealthScore(tempCustomer);
-
-            var newCustomer = {
-                id: Date.now(),
+            const newCustomer = {
+                id: Date.now().toString(),
                 name: name,
                 nps: nps,
                 sessionShowUp: sessionShowUp,
@@ -1416,12 +1352,12 @@
                         score: currentScore, 
                         type: "milestone" 
                     }
-                ]
+                ],
+                createdAt: new Date().toISOString()
             };
 
-            customers.push(newCustomer);
-            updateDashboard();
-            updateTimeFrame(); // Update timeline view
+            // Save to Firebase
+            customersRef.child(newCustomer.id).set(newCustomer);
 
             // Clear form
             document.getElementById('name').value = '';
@@ -1433,14 +1369,112 @@
             document.getElementById('survey').value = 'true';
 
             toggleForm();
-            alert('Customer "' + name + '" added successfully with timeline tracking!');
         }
 
-        // Initialize
-        window.onload = function() {
+        // Delete customer
+        function deleteCustomer(id) {
+            if (confirm('Are you sure you want to delete this customer?')) {
+                customersRef.child(id).remove();
+            }
+        }
+
+        // Update sync indicator
+        function updateSyncIndicator(isConnected) {
+            const dot = document.getElementById('sync-dot');
+            const status = document.getElementById('sync-status');
+            
+            if (isConnected) {
+                dot.classList.remove('offline');
+                status.textContent = 'Connected';
+            } else {
+                dot.classList.add('offline');
+                status.textContent = 'Offline';
+            }
+        }
+
+        // Initialize Firebase listeners
+        customersRef.on('value', (snapshot) => {
+            customers = [];
+            snapshot.forEach((childSnapshot) => {
+                customers.push(childSnapshot.val());
+            });
             updateDashboard();
-            initializeTimeFrame();
-        };
+        });
+
+        // Monitor connection state
+        const connectedRef = database.ref('.info/connected');
+        connectedRef.on('value', (snapshot) => {
+            updateSyncIndicator(snapshot.val() === true);
+        });
+
+        // Initialize with sample data if database is empty
+        customersRef.once('value', (snapshot) => {
+            if (!snapshot.exists()) {
+                const sampleCustomers = [
+                    {
+                        id: '1',
+                        name: "Acme Corp",
+                        nps: 9,
+                        sessionShowUp: 95,
+                        messageResponseTime: 1,
+                        sessionScheduled: true,
+                        participationLevel: 8.5,
+                        surveyFilled: true,
+                        startDate: "2023-01-15",
+                        timeline: [
+                            { date: "2023-01-15", event: "Customer Onboarded", score: 7.5, type: "milestone" },
+                            { date: "2023-03-20", event: "First Health Check", score: 8.0, type: "assessment" },
+                            { date: "2023-06-10", event: "Quarterly Review", score: 8.3, type: "review" },
+                            { date: "2023-09-15", event: "Contract Renewal", score: 8.7, type: "milestone" },
+                            { date: "2024-01-20", event: "Annual Review", score: 9.0, type: "review" },
+                            { date: "2024-12-01", event: "Current Status", score: 9.0, type: "current" }
+                        ]
+                    },
+                    {
+                        id: '2',
+                        name: "TechStart Inc",
+                        nps: 7,
+                        sessionShowUp: 75,
+                        messageResponseTime: 2.5,
+                        sessionScheduled: false,
+                        participationLevel: 6,
+                        surveyFilled: true,
+                        startDate: "2023-06-01",
+                        timeline: [
+                            { date: "2023-06-01", event: "Customer Onboarded", score: 8.2, type: "milestone" },
+                            { date: "2023-08-15", event: "First Health Check", score: 7.8, type: "assessment" },
+                            { date: "2023-11-30", event: "Quarterly Review", score: 7.5, type: "review" },
+                            { date: "2024-03-10", event: "Support Escalation", score: 7.2, type: "incident" },
+                            { date: "2024-06-01", event: "Contract Renewal", score: 7.1, type: "milestone" },
+                            { date: "2024-12-01", event: "Current Status", score: 7.1, type: "current" }
+                        ]
+                    },
+                    {
+                        id: '3',
+                        name: "Global Solutions",
+                        nps: 4,
+                        sessionShowUp: 45,
+                        messageResponseTime: 5,
+                        sessionScheduled: false,
+                        participationLevel: 3,
+                        surveyFilled: false,
+                        startDate: "2024-02-10",
+                        timeline: [
+                            { date: "2024-02-10", event: "Customer Onboarded", score: 6.8, type: "milestone" },
+                            { date: "2024-04-15", event: "First Health Check", score: 6.2, type: "assessment" },
+                            { date: "2024-07-20", event: "Quarterly Review", score: 5.5, type: "review" },
+                            { date: "2024-09-30", event: "Escalation Required", score: 4.8, type: "incident" },
+                            { date: "2024-12-01", event: "Critical Status", score: 4.2, type: "current" }
+                        ]
+                    }
+                ];
+
+                // Save sample data to Firebase
+                sampleCustomers.forEach(customer => {
+                    customersRef.child(customer.id).set(customer);
+                });
+            }
+        });
     </script>
 </body>
 </html>
