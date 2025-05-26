@@ -261,18 +261,36 @@
             line-height: 1.4;
         }
         
-        .delete-btn {
+        .action-btn {
             background: none;
             border: none;
-            color: #dc2626;
             cursor: pointer;
-            padding: 4px;
+            padding: 4px 8px;
             border-radius: 4px;
-            font-size: 16px;
+            font-size: 14px;
+            margin: 0 2px;
+        }
+        
+        .edit-btn {
+            color: #2563eb;
+        }
+        
+        .edit-btn:hover {
+            background-color: #dbeafe;
+        }
+        
+        .delete-btn {
+            color: #dc2626;
         }
         
         .delete-btn:hover {
             background-color: #fee2e2;
+        }
+        
+        .action-buttons {
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
         
         .alerts-section {
@@ -760,7 +778,7 @@
 
         <!-- Add Client Form -->
         <div class="form-section hidden" id="client-form">
-            <h3 style="margin-bottom: 16px;">Add New Client</h3>
+            <h3 style="margin-bottom: 16px;" id="form-title">Add New Client</h3>
             <div class="form-grid">
                 <div class="form-group">
                     <label>Client Name</label>
@@ -802,8 +820,8 @@
                 </div>
             </div>
             <div>
-                <button class="btn btn-success" onclick="addClient()">Add Client</button>
-                <button class="btn btn-secondary" onclick="toggleForm()">Cancel</button>
+                <button class="btn btn-success" id="submit-btn" onclick="addClient()">Add Client</button>
+                <button class="btn btn-secondary" onclick="cancelForm()">Cancel</button>
             </div>
         </div>
 
@@ -864,6 +882,7 @@
         // Local clients array
         let clients = [];
         let dismissedAlerts = new Set();
+        let currentEditingClientId = null;
 
         // Set default join date to today when page loads
         document.addEventListener('DOMContentLoaded', function() {
@@ -1326,7 +1345,12 @@
                         Participation: ${client.participationLevel}<br>
                         Survey: ${client.surveyFilled ? 'Yes' : 'No'}
                     </td>
-                    <td><button class="delete-btn" onclick="deleteClient('${client.id}')">🗑</button></td>`;
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn edit-btn" onclick="editClient('${client.id}')" title="Edit Client">✏️</button>
+                            <button class="action-btn delete-btn" onclick="deleteClient('${client.id}')" title="Delete Client">🗑️</button>
+                        </div>
+                    </td>`;
                 
                 tableBody.appendChild(row);
             });
@@ -1336,6 +1360,144 @@
         function toggleForm() {
             const form = document.getElementById('client-form');
             form.classList.toggle('hidden');
+            
+            // Reset form if opening fresh
+            if (!form.classList.contains('hidden')) {
+                resetForm();
+            }
+        }
+
+        // Reset form to add mode
+        function resetForm() {
+            currentEditingClientId = null;
+            document.getElementById('form-title').textContent = 'Add New Client';
+            document.getElementById('submit-btn').textContent = 'Add Client';
+            document.getElementById('submit-btn').onclick = addClient;
+            
+            // Clear form
+            document.getElementById('name').value = '';
+            document.getElementById('join-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('nps').value = '7';
+            document.getElementById('showup').value = '85';
+            document.getElementById('response').value = '2';
+            document.getElementById('participation').value = '7';
+            document.getElementById('scheduled').value = 'true';
+            document.getElementById('survey').value = 'true';
+        }
+
+        // Cancel form
+        function cancelForm() {
+            const form = document.getElementById('client-form');
+            form.classList.add('hidden');
+            resetForm();
+        }
+
+        // Edit client
+        function editClient(id) {
+            const client = clients.find(c => c.id === id);
+            if (!client) {
+                alert('Client not found');
+                return;
+            }
+
+            currentEditingClientId = id;
+            
+            // Update form title and button
+            document.getElementById('form-title').textContent = 'Edit Client';
+            document.getElementById('submit-btn').textContent = 'Update Client';
+            document.getElementById('submit-btn').onclick = updateClient;
+            
+            // Populate form with client data
+            document.getElementById('name').value = client.name;
+            document.getElementById('join-date').value = client.joinDate || '';
+            document.getElementById('nps').value = client.nps;
+            document.getElementById('showup').value = client.sessionShowUp;
+            document.getElementById('response').value = client.messageResponseTime;
+            document.getElementById('participation').value = client.participationLevel;
+            document.getElementById('scheduled').value = client.sessionScheduled.toString();
+            document.getElementById('survey').value = client.surveyFilled.toString();
+            
+            // Show form
+            document.getElementById('client-form').classList.remove('hidden');
+        }
+
+        // Update client
+        function updateClient() {
+            if (!currentEditingClientId) {
+                alert('No client selected for editing');
+                return;
+            }
+
+            const name = document.getElementById('name').value.trim();
+            const joinDate = document.getElementById('join-date').value;
+            const nps = parseFloat(document.getElementById('nps').value) || 7;
+            const sessionShowUp = parseInt(document.getElementById('showup').value) || 85;
+            const messageResponseTime = parseFloat(document.getElementById('response').value) || 2;
+            const participationLevel = parseFloat(document.getElementById('participation').value) || 7;
+            const sessionScheduled = document.getElementById('scheduled').value === 'true';
+            const surveyFilled = document.getElementById('survey').value === 'true';
+
+            if (!name) {
+                alert('Please enter a client name');
+                return;
+            }
+
+            if (!joinDate) {
+                alert('Please select a join date');
+                return;
+            }
+
+            // Find the existing client
+            const existingClient = clients.find(c => c.id === currentEditingClientId);
+            if (!existingClient) {
+                alert('Client not found');
+                return;
+            }
+
+            // Calculate new health score
+            const tempClient = {
+                nps: nps,
+                sessionShowUp: sessionShowUp,
+                messageResponseTime: messageResponseTime,
+                sessionScheduled: sessionScheduled,
+                participationLevel: participationLevel,
+                surveyFilled: surveyFilled
+            };
+            const newScore = calculateHealthScore(tempClient);
+
+            // Create updated client object
+            const updatedClient = {
+                ...existingClient,
+                name: name,
+                joinDate: joinDate,
+                nps: nps,
+                sessionShowUp: sessionShowUp,
+                messageResponseTime: messageResponseTime,
+                sessionScheduled: sessionScheduled,
+                participationLevel: participationLevel,
+                surveyFilled: surveyFilled,
+                updatedAt: new Date().toISOString()
+            };
+
+            // Add timeline entry for the update
+            if (!updatedClient.timeline) {
+                updatedClient.timeline = [];
+            }
+            
+            updatedClient.timeline.push({
+                date: new Date().toISOString().split('T')[0],
+                event: "Client Data Updated",
+                score: newScore,
+                type: "update"
+            });
+
+            // Update in Firebase
+            clientsRef.child(currentEditingClientId).set(updatedClient);
+
+            // Close form and reset
+            cancelForm();
+            
+            alert('Client updated successfully!');
         }
 
         // Add client
