@@ -108,6 +108,7 @@
         .stat-icon.green { background-color: #dcfce7; color: #16a34a; }
         .stat-icon.yellow { background-color: #fef3c7; color: #d97706; }
         .stat-icon.red { background-color: #fee2e2; color: #dc2626; }
+        .stat-icon.purple { background-color: #ede9fe; color: #7c3aed; }
         
         .stat-info h3 {
             font-size: 0.875rem;
@@ -155,6 +156,14 @@
             background-color: #4b5563;
         }
         
+        .btn-warning {
+            background-color: #f59e0b;
+        }
+        
+        .btn-warning:hover {
+            background-color: #d97706;
+        }
+        
         .form-section {
             background: white;
             padding: 24px;
@@ -200,11 +209,27 @@
         .table-header {
             padding: 20px;
             border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
         .table-header h2 {
             font-size: 1.25rem;
             font-weight: 600;
+        }
+        
+        .client-filter {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .client-filter select {
+            padding: 6px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 4px;
+            font-size: 0.875rem;
         }
         
         table {
@@ -233,6 +258,15 @@
             background-color: #f9fafb;
         }
         
+        tr.offboarded {
+            background-color: #fef2f2;
+            opacity: 0.8;
+        }
+        
+        tr.offboarded:hover {
+            background-color: #fee2e2;
+        }
+        
         .status-badge {
             padding: 4px 8px;
             border-radius: 12px;
@@ -253,6 +287,29 @@
         .status-badge.critical {
             background-color: #fee2e2;
             color: #991b1b;
+        }
+        
+        .status-badge.offboarded {
+            background-color: #f3f4f6;
+            color: #4b5563;
+        }
+        
+        .month-indicator {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+        
+        .offboard-date {
+            font-size: 0.75rem;
+            color: #dc2626;
+            font-weight: 500;
+            margin-top: 4px;
         }
         
         .details {
@@ -285,6 +342,22 @@
         
         .delete-btn:hover {
             background-color: #fee2e2;
+        }
+        
+        .offboard-btn {
+            color: #f59e0b;
+        }
+        
+        .offboard-btn:hover {
+            background-color: #fef3c7;
+        }
+        
+        .reactivate-btn {
+            color: #16a34a;
+        }
+        
+        .reactivate-btn:hover {
+            background-color: #dcfce7;
         }
         
         .action-buttons {
@@ -439,6 +512,10 @@
             background: linear-gradient(to top, #fee2e2, #dc2626);
         }
         
+        .bar.offboarded {
+            background: linear-gradient(to top, #f3f4f6, #6b7280);
+        }
+        
         .bar-label {
             position: absolute;
             bottom: -25px;
@@ -482,6 +559,7 @@
         .legend-color.healthy { background-color: #16a34a; }
         .legend-color.at-risk { background-color: #d97706; }
         .legend-color.critical { background-color: #dc2626; }
+        .legend-color.offboarded { background-color: #6b7280; }
         
         .time-filter-section {
             background: white;
@@ -663,6 +741,43 @@
             font-weight: 500;
             margin-top: 4px;
         }
+
+        /* Modal styles for offboard confirmation */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 400px;
+            max-width: 90%;
+        }
+
+        .modal h3 {
+            margin-bottom: 16px;
+            color: #111827;
+        }
+
+        .modal p {
+            margin-bottom: 20px;
+            color: #6b7280;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
     </style>
 </head>
 <body>
@@ -670,6 +785,22 @@
     <div class="sync-indicator">
         <div class="sync-dot" id="sync-dot"></div>
         <span id="sync-status">Connected</span>
+    </div>
+
+    <!-- Offboard Modal -->
+    <div id="offboard-modal" class="modal">
+        <div class="modal-content">
+            <h3>🏃‍♂️ Offboard Client</h3>
+            <p>Are you sure you want to offboard <strong id="offboard-client-name"></strong>? This will mark them as inactive but preserve all their data.</p>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label>Offboard Date:</label>
+                <input type="date" id="offboard-date" style="width: 100%;">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeOffboardModal()">Cancel</button>
+                <button class="btn btn-warning" onclick="confirmOffboard()">Offboard Client</button>
+            </div>
+        </div>
     </div>
 
     <div class="container">
@@ -691,7 +822,7 @@
             <div class="stat-card">
                 <div class="stat-icon green">✓</div>
                 <div class="stat-info">
-                    <h3>Healthy</h3>
+                    <h3>Active & Healthy</h3>
                     <p id="healthy-clients" style="color: #16a34a;">0</p>
                 </div>
             </div>
@@ -707,6 +838,13 @@
                 <div class="stat-info">
                     <h3>Critical</h3>
                     <p id="critical-clients" style="color: #dc2626;">0</p>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon purple">🏃‍♂️</div>
+                <div class="stat-info">
+                    <h3>Offboarded</h3>
+                    <p id="offboarded-clients" style="color: #7c3aed;">0</p>
                 </div>
             </div>
         </div>
@@ -829,13 +967,21 @@
         <div class="table-section">
             <div class="table-header">
                 <h2>Client Health Scores</h2>
+                <div class="client-filter">
+                    <label>Filter:</label>
+                    <select id="client-status-filter" onchange="updateTable()">
+                        <option value="all">All Clients</option>
+                        <option value="active">Active Only</option>
+                        <option value="offboarded">Offboarded Only</option>
+                    </select>
+                </div>
             </div>
             <div>
                 <table>
                     <thead>
                         <tr>
                             <th>Client</th>
-                            <th>Join Date</th>
+                            <th>Join Date & Month</th>
                             <th>NPS</th>
                             <th>Engagement</th>
                             <th>Health Score</th>
@@ -883,12 +1029,27 @@
         let clients = [];
         let dismissedAlerts = new Set();
         let currentEditingClientId = null;
+        let currentOffboardingClientId = null;
 
         // Set default join date to today when page loads
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('join-date').value = today;
+            document.getElementById('offboard-date').value = today;
         });
+
+        // Calculate which month the client is in
+        function calculateClientMonth(joinDate, offboardDate = null) {
+            if (!joinDate) return 0;
+            
+            const join = new Date(joinDate);
+            const endDate = offboardDate ? new Date(offboardDate) : new Date();
+            
+            const yearDiff = endDate.getFullYear() - join.getFullYear();
+            const monthDiff = endDate.getMonth() - join.getMonth();
+            
+            return Math.max(1, yearDiff * 12 + monthDiff + 1);
+        }
 
         // Calculate engagement score
         function calculateEngagementScore(client) {
@@ -909,10 +1070,100 @@
         }
 
         // Get health category
-        function getHealthCategory(score) {
+        function getHealthCategory(score, isOffboarded = false) {
+            if (isOffboarded) return { color: 'offboarded', label: 'Offboarded' };
             if (score >= 8) return { color: 'healthy', label: 'Healthy' };
             if (score >= 7) return { color: 'at-risk', label: 'At Risk' };
             return { color: 'critical', label: 'Critical' };
+        }
+
+        // Offboard modal functions
+        function openOffboardModal(clientId) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+
+            currentOffboardingClientId = clientId;
+            document.getElementById('offboard-client-name').textContent = client.name;
+            document.getElementById('offboard-modal').style.display = 'block';
+        }
+
+        function closeOffboardModal() {
+            document.getElementById('offboard-modal').style.display = 'none';
+            currentOffboardingClientId = null;
+        }
+
+        function confirmOffboard() {
+            if (!currentOffboardingClientId) return;
+
+            const offboardDate = document.getElementById('offboard-date').value;
+            if (!offboardDate) {
+                alert('Please select an offboard date');
+                return;
+            }
+
+            const client = clients.find(c => c.id === currentOffboardingClientId);
+            if (!client) return;
+
+            // Add offboard information
+            const updatedClient = {
+                ...client,
+                isOffboarded: true,
+                offboardDate: offboardDate,
+                updatedAt: new Date().toISOString()
+            };
+
+            // Add timeline entry
+            if (!updatedClient.timeline) {
+                updatedClient.timeline = [];
+            }
+            
+            updatedClient.timeline.push({
+                date: offboardDate,
+                event: "Client Offboarded",
+                score: calculateHealthScore(client),
+                type: "offboard"
+            });
+
+            // Update in Firebase
+            clientsRef.child(currentOffboardingClientId).set(updatedClient);
+
+            closeOffboardModal();
+            alert('Client offboarded successfully!');
+        }
+
+        // Reactivate client
+        function reactivateClient(clientId) {
+            if (!confirm('Are you sure you want to reactivate this client?')) return;
+
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+
+            const updatedClient = {
+                ...client,
+                isOffboarded: false,
+                reactivateDate: new Date().toISOString().split('T')[0],
+                updatedAt: new Date().toISOString()
+            };
+
+            // Remove offboard date but keep it in timeline
+            delete updatedClient.offboardDate;
+
+            // Add timeline entry
+            if (!updatedClient.timeline) {
+                updatedClient.timeline = [];
+            }
+            
+            updatedClient.timeline.push({
+                date: new Date().toISOString().split('T')[0],
+                event: "Client Reactivated",
+                score: calculateHealthScore(client),
+                type: "reactivate"
+            });
+
+            // Update in Firebase
+            clientsRef.child(clientId).set(updatedClient);
+
+            alert('Client reactivated successfully!');
         }
 
         // Time frame analysis functions
@@ -951,8 +1202,9 @@
             let totalMonths = 0;
             const healthChanges = [];
             let retainedClients = 0;
+            const activeClients = clients.filter(c => !c.isOffboarded);
             
-            clients.forEach(client => {
+            activeClients.forEach(client => {
                 if (client.joinDate) {
                     const joinDate = new Date(client.joinDate);
                     const currentDate = new Date();
@@ -971,8 +1223,8 @@
                 }
             });
             
-            const avgRelationship = clients.length > 0 ? (totalMonths / clients.length).toFixed(1) : 0;
-            const retentionRate = clients.length > 0 ? ((retainedClients / clients.length) * 100).toFixed(0) : 0;
+            const avgRelationship = activeClients.length > 0 ? (totalMonths / activeClients.length).toFixed(1) : 0;
+            const retentionRate = activeClients.length > 0 ? ((retainedClients / activeClients.length) * 100).toFixed(0) : 0;
             const avgHealthChange = healthChanges.length > 0 ? 
                 healthChanges.reduce((a, b) => a + b, 0) / healthChanges.length : 0;
             const trendDirection = avgHealthChange > 0 ? 'Improving' : avgHealthChange < 0 ? 'Declining' : 'Stable';
@@ -981,7 +1233,7 @@
                 avgRelationship: `<strong>${avgRelationship} months</strong>`,
                 retentionRate: `<strong>${retentionRate}%</strong> healthy clients`,
                 healthTrend: `<strong>${trendDirection} (${avgHealthChange > 0 ? '+' : ''}${avgHealthChange.toFixed(1)})</strong>`,
-                riskAnalysis: `<strong>${clients.filter(c => calculateHealthScore(c) < 7).length}</strong> clients at risk`
+                riskAnalysis: `<strong>${activeClients.filter(c => calculateHealthScore(c) < 7).length}</strong> clients at risk`
             };
         }
 
@@ -1080,20 +1332,31 @@
 
         // Update dashboard
         function updateDashboard() {
-            const stats = { total: clients.length, healthy: 0, atRisk: 0, critical: 0 };
+            const stats = { 
+                total: clients.length, 
+                healthy: 0, 
+                atRisk: 0, 
+                critical: 0, 
+                offboarded: 0 
+            };
             
             clients.forEach(client => {
-                const score = calculateHealthScore(client);
-                const category = getHealthCategory(score);
-                if (category.color === 'healthy') stats.healthy++;
-                else if (category.color === 'at-risk') stats.atRisk++;
-                else stats.critical++;
+                if (client.isOffboarded) {
+                    stats.offboarded++;
+                } else {
+                    const score = calculateHealthScore(client);
+                    const category = getHealthCategory(score);
+                    if (category.color === 'healthy') stats.healthy++;
+                    else if (category.color === 'at-risk') stats.atRisk++;
+                    else stats.critical++;
+                }
             });
 
             document.getElementById('total-clients').textContent = stats.total;
             document.getElementById('healthy-clients').textContent = stats.healthy;
             document.getElementById('at-risk-clients').textContent = stats.atRisk;
             document.getElementById('critical-clients').textContent = stats.critical;
+            document.getElementById('offboarded-clients').textContent = stats.offboarded;
 
             updateTable();
             updateAlerts();
@@ -1109,7 +1372,10 @@
             let alertCount = 0;
             let urgentCount = 0;
 
-            clients.forEach(client => {
+            // Only show alerts for active clients
+            const activeClients = clients.filter(c => !c.isOffboarded);
+
+            activeClients.forEach(client => {
                 const score = calculateHealthScore(client);
                 const category = getHealthCategory(score);
 
@@ -1217,7 +1483,7 @@
 
             clients.forEach(client => {
                 const score = calculateHealthScore(client);
-                const category = getHealthCategory(score);
+                const category = getHealthCategory(score, client.isOffboarded);
                 
                 const barContainer = document.createElement('div');
                 barContainer.style.flex = '1';
@@ -1227,7 +1493,7 @@
                 const bar = document.createElement('div');
                 bar.className = `bar ${category.color}`;
                 bar.style.height = `${(score / 10 * 100)}%`;
-                bar.textContent = score.toFixed(1);
+                bar.textContent = client.isOffboarded ? 'OFF' : score.toFixed(1);
                 
                 const label = document.createElement('div');
                 label.className = 'bar-label';
@@ -1246,14 +1512,18 @@
             const chartContainer = document.getElementById('distribution-chart');
             chartContainer.innerHTML = '';
 
-            const stats = { healthy: 0, atRisk: 0, critical: 0 };
+            const stats = { healthy: 0, atRisk: 0, critical: 0, offboarded: 0 };
             
             clients.forEach(client => {
-                const score = calculateHealthScore(client);
-                const category = getHealthCategory(score);
-                if (category.color === 'healthy') stats.healthy++;
-                else if (category.color === 'at-risk') stats.atRisk++;
-                else stats.critical++;
+                if (client.isOffboarded) {
+                    stats.offboarded++;
+                } else {
+                    const score = calculateHealthScore(client);
+                    const category = getHealthCategory(score);
+                    if (category.color === 'healthy') stats.healthy++;
+                    else if (category.color === 'at-risk') stats.atRisk++;
+                    else stats.critical++;
+                }
             });
 
             const total = clients.length;
@@ -1265,6 +1535,7 @@
             const healthyPercent = (stats.healthy / total * 100);
             const atRiskPercent = (stats.atRisk / total * 100);
             const criticalPercent = (stats.critical / total * 100);
+            const offboardedPercent = (stats.offboarded / total * 100);
 
             // Create pie chart visualization
             const pieContainer = document.createElement('div');
@@ -1275,7 +1546,8 @@
             pieContainer.style.background = `conic-gradient(
                 #16a34a 0% ${healthyPercent}%, 
                 #d97706 ${healthyPercent}% ${healthyPercent + atRiskPercent}%, 
-                #dc2626 ${healthyPercent + atRiskPercent}% 100%)`;
+                #dc2626 ${healthyPercent + atRiskPercent}% ${healthyPercent + atRiskPercent + criticalPercent}%,
+                #6b7280 ${healthyPercent + atRiskPercent + criticalPercent}% 100%)`;
 
             chartContainer.appendChild(pieContainer);
 
@@ -1286,7 +1558,8 @@
             const chartData = [
                 { label: 'Healthy', count: stats.healthy, color: '#16a34a' },
                 { label: 'At Risk', count: stats.atRisk, color: '#d97706' },
-                { label: 'Critical', count: stats.critical, color: '#dc2626' }
+                { label: 'Critical', count: stats.critical, color: '#dc2626' },
+                { label: 'Offboarded', count: stats.offboarded, color: '#6b7280' }
             ];
 
             chartData.forEach(item => {
@@ -1313,12 +1586,21 @@
         // Update table
         function updateTable() {
             const tableBody = document.getElementById('client-table');
+            const filter = document.getElementById('client-status-filter').value;
             tableBody.innerHTML = '';
 
-            clients.forEach(client => {
+            let filteredClients = clients;
+            if (filter === 'active') {
+                filteredClients = clients.filter(c => !c.isOffboarded);
+            } else if (filter === 'offboarded') {
+                filteredClients = clients.filter(c => c.isOffboarded);
+            }
+
+            filteredClients.forEach(client => {
                 const healthScore = calculateHealthScore(client);
                 const engagementScore = calculateEngagementScore(client);
-                const category = getHealthCategory(healthScore);
+                const category = getHealthCategory(healthScore, client.isOffboarded);
+                const clientMonth = calculateClientMonth(client.joinDate, client.offboardDate);
 
                 // Format join date
                 const joinDate = client.joinDate ? new Date(client.joinDate).toLocaleDateString('en-US', {
@@ -1327,16 +1609,31 @@
                     day: 'numeric'
                 }) : 'N/A';
 
+                // Format offboard date if exists
+                const offboardDate = client.offboardDate ? new Date(client.offboardDate).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                }) : null;
+
                 const row = document.createElement('tr');
+                if (client.isOffboarded) {
+                    row.className = 'offboarded';
+                }
+                
                 row.innerHTML = `
                     <td>
                         <strong>${client.name}</strong>
                         <div class="join-date">Joined: ${joinDate}</div>
+                        ${client.isOffboarded && offboardDate ? `<div class="offboard-date">Offboarded: ${offboardDate}</div>` : ''}
                     </td>
-                    <td>${joinDate}</td>
+                    <td>
+                        ${joinDate}
+                        <span class="month-indicator">${getOrdinal(clientMonth)} Month</span>
+                    </td>
                     <td>${client.nps.toFixed(1)}</td>
                     <td>${engagementScore.toFixed(1)}</td>
-                    <td><strong>${healthScore.toFixed(1)}</strong></td>
+                    <td><strong>${client.isOffboarded ? 'N/A' : healthScore.toFixed(1)}</strong></td>
                     <td><span class="status-badge ${category.color}">${category.label}</span></td>
                     <td class="details">
                         Show Up: ${client.sessionShowUp}%<br>
@@ -1347,13 +1644,25 @@
                     </td>
                     <td>
                         <div class="action-buttons">
-                            <button class="action-btn edit-btn" onclick="editClient('${client.id}')" title="Edit Client">✏️</button>
+                            ${!client.isOffboarded ? `
+                                <button class="action-btn edit-btn" onclick="editClient('${client.id}')" title="Edit Client">✏️</button>
+                                <button class="action-btn offboard-btn" onclick="openOffboardModal('${client.id}')" title="Offboard Client">🏃‍♂️</button>
+                            ` : `
+                                <button class="action-btn reactivate-btn" onclick="reactivateClient('${client.id}')" title="Reactivate Client">🔄</button>
+                            `}
                             <button class="action-btn delete-btn" onclick="deleteClient('${client.id}')" title="Delete Client">🗑️</button>
                         </div>
                     </td>`;
                 
                 tableBody.appendChild(row);
             });
+        }
+
+        // Helper function to get ordinal numbers (1st, 2nd, 3rd, etc.)
+        function getOrdinal(num) {
+            const suffixes = ["th", "st", "nd", "rd"];
+            const v = num % 100;
+            return num + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
         }
 
         // Toggle form
@@ -1397,6 +1706,11 @@
             const client = clients.find(c => c.id === id);
             if (!client) {
                 alert('Client not found');
+                return;
+            }
+
+            if (client.isOffboarded) {
+                alert('Cannot edit offboarded clients. Please reactivate first.');
                 return;
             }
 
@@ -1541,6 +1855,7 @@
                 sessionScheduled: sessionScheduled,
                 participationLevel: participationLevel,
                 surveyFilled: surveyFilled,
+                isOffboarded: false,
                 timeline: [
                     { 
                         date: joinDate, 
@@ -1570,7 +1885,10 @@
 
         // Delete client
         function deleteClient(id) {
-            if (confirm('Are you sure you want to delete this client?')) {
+            const client = clients.find(c => c.id === id);
+            const clientName = client ? client.name : 'this client';
+            
+            if (confirm(`Are you sure you want to permanently delete ${clientName}? This action cannot be undone.`)) {
                 clientsRef.child(id).remove();
             }
         }
@@ -1586,6 +1904,14 @@
             } else {
                 dot.classList.add('offline');
                 status.textContent = 'Offline';
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('offboard-modal');
+            if (event.target === modal) {
+                closeOffboardModal();
             }
         }
 
@@ -1618,6 +1944,7 @@
                         sessionScheduled: true,
                         participationLevel: 8.5,
                         surveyFilled: true,
+                        isOffboarded: false,
                         timeline: [
                             { date: "2023-01-15", event: "Client Onboarded", score: 7.5, type: "milestone" },
                             { date: "2023-03-20", event: "First Health Check", score: 8.0, type: "assessment" },
@@ -1637,6 +1964,7 @@
                         sessionScheduled: false,
                         participationLevel: 6,
                         surveyFilled: true,
+                        isOffboarded: false,
                         timeline: [
                             { date: "2023-06-01", event: "Client Onboarded", score: 8.2, type: "milestone" },
                             { date: "2023-08-15", event: "First Health Check", score: 7.8, type: "assessment" },
@@ -1656,12 +1984,33 @@
                         sessionScheduled: false,
                         participationLevel: 3,
                         surveyFilled: false,
+                        isOffboarded: false,
                         timeline: [
                             { date: "2024-02-10", event: "Client Onboarded", score: 6.8, type: "milestone" },
                             { date: "2024-04-15", event: "First Health Check", score: 6.2, type: "assessment" },
                             { date: "2024-07-20", event: "Quarterly Review", score: 5.5, type: "review" },
                             { date: "2024-09-30", event: "Escalation Required", score: 4.8, type: "incident" },
                             { date: "2024-12-01", event: "Critical Status", score: 4.2, type: "current" }
+                        ]
+                    },
+                    {
+                        id: '4',
+                        name: "Legacy Corp",
+                        joinDate: "2022-03-01",
+                        nps: 6,
+                        sessionShowUp: 60,
+                        messageResponseTime: 4,
+                        sessionScheduled: true,
+                        participationLevel: 5,
+                        surveyFilled: false,
+                        isOffboarded: true,
+                        offboardDate: "2024-11-15",
+                        timeline: [
+                            { date: "2022-03-01", event: "Client Onboarded", score: 7.8, type: "milestone" },
+                            { date: "2022-09-15", event: "First Health Check", score: 7.2, type: "assessment" },
+                            { date: "2023-03-01", event: "Annual Review", score: 6.8, type: "review" },
+                            { date: "2024-01-10", event: "Support Issues", score: 6.2, type: "incident" },
+                            { date: "2024-11-15", event: "Client Offboarded", score: 6.0, type: "offboard" }
                         ]
                     }
                 ];
