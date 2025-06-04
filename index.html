@@ -1038,17 +1038,24 @@
             document.getElementById('offboard-date').value = today;
         });
 
-        // Calculate which month the client is in
+        // Calculate which month the client is in - FIXED VERSION
         function calculateClientMonth(joinDate, offboardDate = null) {
             if (!joinDate) return 0;
             
             const join = new Date(joinDate);
             const endDate = offboardDate ? new Date(offboardDate) : new Date();
             
-            const yearDiff = endDate.getFullYear() - join.getFullYear();
-            const monthDiff = endDate.getMonth() - join.getMonth();
+            // Calculate the difference in months
+            let months = (endDate.getFullYear() - join.getFullYear()) * 12;
+            months += endDate.getMonth() - join.getMonth();
             
-            return Math.max(1, yearDiff * 12 + monthDiff + 1);
+            // If we haven't reached the anniversary day yet, subtract one month
+            if (endDate.getDate() < join.getDate()) {
+                months--;
+            }
+            
+            // Add 1 to get which month they're currently in (not how many have passed)
+            return Math.max(1, months + 1);
         }
 
         // Calculate engagement score
@@ -1699,9 +1706,6 @@
                         <div class="join-date">Joined: ${joinDate}</div>
                         ${client.isOffboarded && offboardDate ? `<div class="offboard-date">Offboarded: ${offboardDate}</div>` : ''}
                     </td>
-                    <td>
-                        ${joinDate}
-                        <span class="month-indicator">${getOrdinal(clientMonth)} Month</span>
                     </td>
                     <td>${client.nps.toFixed(1)}</td>
                     <td>${engagementScore.toFixed(1)}</td>
