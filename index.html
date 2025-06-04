@@ -1706,6 +1706,9 @@
                         <div class="join-date">Joined: ${joinDate}</div>
                         ${client.isOffboarded && offboardDate ? `<div class="offboard-date">Offboarded: ${offboardDate}</div>` : ''}
                     </td>
+                    <td>
+                        ${joinDate}
+                        <span class="month-indicator">${getOrdinal(clientMonth)} Month</span>
                     </td>
                     <td>${client.nps.toFixed(1)}</td>
                     <td>${engagementScore.toFixed(1)}</td>
