@@ -1173,18 +1173,20 @@
             alert('Client reactivated successfully!');
         }
 
-        // FIXED RETENTION CALCULATION FUNCTIONS
+        // UPDATED RETENTION CALCULATION FUNCTIONS - Modified to show "Retention in Months"
         function calculateTimeInsights(period) {
             let totalMonths = 0;
             const healthChanges = [];
-            const activeClients = clients.filter(c => !c.isOffboarded);
             
-            // Calculate average relationship length
-            activeClients.forEach(client => {
+            // Calculate retention in months for ALL clients (including offboarded)
+            clients.forEach(client => {
                 if (client.joinDate) {
                     const joinDate = new Date(client.joinDate);
-                    const currentDate = new Date();
-                    const monthsDiff = (currentDate - joinDate) / (1000 * 60 * 60 * 24 * 30);
+                    const endDate = client.isOffboarded && client.offboardDate ? 
+                        new Date(client.offboardDate) : new Date();
+                    
+                    // Calculate months between join date and end date (offboard or current)
+                    const monthsDiff = (endDate - joinDate) / (1000 * 60 * 60 * 24 * 30);
                     totalMonths += monthsDiff;
                 }
                 
@@ -1198,16 +1200,18 @@
             // Calculate actual retention rate
             const retentionData = calculateActualRetention(period);
             
-            const avgRelationship = activeClients.length > 0 ? (totalMonths / activeClients.length).toFixed(1) : 0;
+            // Calculate average retention in months across ALL clients
+            const avgRetentionMonths = clients.length > 0 ? (totalMonths / clients.length).toFixed(1) : 0;
             const avgHealthChange = healthChanges.length > 0 ? 
                 healthChanges.reduce((a, b) => a + b, 0) / healthChanges.length : 0;
             const trendDirection = avgHealthChange > 0 ? 'Improving' : avgHealthChange < 0 ? 'Declining' : 'Stable';
             
             return {
-                avgRelationship: `<strong>${avgRelationship} months</strong>`,
+                // CHANGED: avgRelationship becomes avgRetentionMonths
+                avgRetentionMonths: `<strong>${avgRetentionMonths} months</strong>`,
                 retentionRate: `<strong>${retentionData.rate}%</strong> (${retentionData.details})`,
                 healthTrend: `<strong>${trendDirection} (${avgHealthChange > 0 ? '+' : ''}${avgHealthChange.toFixed(1)})</strong>`,
-                riskAnalysis: `<strong>${activeClients.filter(c => calculateHealthScore(c) < 7).length}</strong> clients at risk`
+                riskAnalysis: `<strong>${clients.filter(c => !c.isOffboarded && calculateHealthScore(c) < 7).length}</strong> clients at risk`
             };
         }
 
@@ -1293,14 +1297,15 @@
             updateTimelineView(viewType, period);
         }
 
+        // UPDATED FUNCTION: Display "Retention in Months" instead of "Average Relationship"
         function updateTimeInsights(period) {
             const insights = calculateTimeInsights(period);
             const insightsContainer = document.getElementById('time-insights');
             
             insightsContainer.innerHTML = `
                 <div class="insight-card">
-                    <h4>📈 Average Relationship</h4>
-                    <p>${insights.avgRelationship}</p>
+                    <h4>📈 Retention in Months</h4>
+                    <p>${insights.avgRetentionMonths}</p>
                 </div>
                 <div class="insight-card">
                     <h4>🎯 Client Retention</h4>
