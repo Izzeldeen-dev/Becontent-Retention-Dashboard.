@@ -8,6 +8,7 @@
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     
     <style>
         * {
@@ -50,9 +51,44 @@
             animation: none;
         }
         
+        .sync-dot.error {
+            background: #f59e0b;
+            animation: pulse 1s infinite;
+        }
+        
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
+        }
+        
+        .auth-section {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            background: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 999;
+            display: none;
+        }
+        
+        .auth-section.show {
+            display: block;
+        }
+        
+        .error-banner {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            border: 1px solid #fecaca;
+            display: none;
+        }
+        
+        .error-banner.show {
+            display: block;
         }
         
         .container {
@@ -138,6 +174,11 @@
         
         .btn:hover {
             background-color: #1d4ed8;
+        }
+        
+        .btn:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
         }
         
         .btn-success {
@@ -784,7 +825,17 @@
     <!-- Sync Indicator -->
     <div class="sync-indicator">
         <div class="sync-dot" id="sync-dot"></div>
-        <span id="sync-status">Connected</span>
+        <span id="sync-status">Connecting...</span>
+    </div>
+
+    <!-- Auth Section -->
+    <div class="auth-section" id="auth-section">
+        <button class="btn btn-secondary" onclick="signInAnonymously()">🔑 Sign In to Edit</button>
+    </div>
+
+    <!-- Error Banner -->
+    <div class="error-banner" id="error-banner">
+        <strong>⚠️ Permission Error:</strong> <span id="error-message">Unable to update data. Please check your permissions.</span>
     </div>
 
     <!-- Offboard Modal -->
@@ -896,12 +947,6 @@
         <!-- Charts Section -->
         <div class="charts-section">
             <div class="chart-card">
-                <h3>Health Score Overview</h3>
-                <div class="chart-container" id="score-chart">
-                    <!-- Chart will be generated here -->
-                </div>
-            </div>
-            <div class="chart-card">
                 <h3>Client Distribution</h3>
                 <div class="chart-container" id="distribution-chart">
                     <!-- Chart will be generated here -->
@@ -910,7 +955,7 @@
         </div>
 
         <!-- Add Client Button -->
-        <button class="btn" onclick="toggleForm()">
+        <button class="btn" onclick="toggleForm()" id="add-client-btn">
             ➕ Add Client
         </button>
 
@@ -1016,13 +1061,17 @@
         // Initialize Firebase
         let database;
         let clientsRef;
+        let auth;
+        let currentUser = null;
         
         try {
             firebase.initializeApp(firebaseConfig);
             database = firebase.database();
+            auth = firebase.auth();
             clientsRef = database.ref('clients');
         } catch (error) {
             console.error('Firebase initialization error:', error);
+            showError('Failed to initialize Firebase: ' + error.message);
         }
 
         // Local clients array
@@ -1030,6 +1079,63 @@
         let dismissedAlerts = new Set();
         let currentEditingClientId = null;
         let currentOffboardingClientId = null;
+
+        // Error handling
+        function showError(message) {
+            const errorBanner = document.getElementById('error-banner');
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = message;
+            errorBanner.classList.add('show');
+            
+            // Hide after 10 seconds
+            setTimeout(() => {
+                errorBanner.classList.remove('show');
+            }, 10000);
+        }
+
+        function hideError() {
+            document.getElementById('error-banner').classList.remove('show');
+        }
+
+        // Authentication functions
+        function signInAnonymously() {
+            auth.signInAnonymously()
+                .then(() => {
+                    console.log('Signed in anonymously');
+                    updateAuthUI();
+                })
+                .catch((error) => {
+                    console.error('Anonymous sign-in failed:', error);
+                    showError('Authentication failed: ' + error.message);
+                });
+        }
+
+        function signOut() {
+            auth.signOut().then(() => {
+                console.log('Signed out');
+                updateAuthUI();
+            });
+        }
+
+        function updateAuthUI() {
+            const authSection = document.getElementById('auth-section');
+            const addClientBtn = document.getElementById('add-client-btn');
+            
+            if (currentUser) {
+                authSection.innerHTML = `
+                    <span style="color: #059669; font-size: 0.875rem;">✓ Authenticated</span>
+                    <button class="btn btn-secondary" onclick="signOut()" style="margin-left: 8px; padding: 4px 8px; font-size: 0.75rem;">Sign Out</button>
+                `;
+                addClientBtn.disabled = false;
+                hideError();
+            } else {
+                authSection.innerHTML = `
+                    <button class="btn btn-secondary" onclick="signInAnonymously()">🔑 Sign In to Edit</button>
+                `;
+                addClientBtn.disabled = true;
+                authSection.classList.add('show');
+            }
+        }
 
         // Set default join date to today when page loads
         document.addEventListener('DOMContentLoaded', function() {
@@ -1084,8 +1190,50 @@
             return { color: 'critical', label: 'Critical' };
         }
 
+        // Handle Firebase write operations with error handling
+        function writeToFirebase(path, data, successCallback = null, errorCallback = null) {
+            if (!currentUser) {
+                showError('Please sign in to make changes');
+                return;
+            }
+
+            database.ref(path).set(data)
+                .then(() => {
+                    console.log('Write successful:', path);
+                    if (successCallback) successCallback();
+                })
+                .catch((error) => {
+                    console.error('Write failed:', error);
+                    showError('Failed to save changes: ' + error.message);
+                    if (errorCallback) errorCallback(error);
+                });
+        }
+
+        function removeFromFirebase(path, successCallback = null, errorCallback = null) {
+            if (!currentUser) {
+                showError('Please sign in to make changes');
+                return;
+            }
+
+            database.ref(path).remove()
+                .then(() => {
+                    console.log('Remove successful:', path);
+                    if (successCallback) successCallback();
+                })
+                .catch((error) => {
+                    console.error('Remove failed:', error);
+                    showError('Failed to delete: ' + error.message);
+                    if (errorCallback) errorCallback(error);
+                });
+        }
+
         // Offboard modal functions
         function openOffboardModal(clientId) {
+            if (!currentUser) {
+                showError('Please sign in to make changes');
+                return;
+            }
+
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
 
@@ -1132,14 +1280,19 @@
             });
 
             // Update in Firebase
-            clientsRef.child(currentOffboardingClientId).set(updatedClient);
-
-            closeOffboardModal();
-            alert('Client offboarded successfully!');
+            writeToFirebase(`clients/${currentOffboardingClientId}`, updatedClient, () => {
+                closeOffboardModal();
+                alert('Client offboarded successfully!');
+            });
         }
 
         // Reactivate client
         function reactivateClient(clientId) {
+            if (!currentUser) {
+                showError('Please sign in to make changes');
+                return;
+            }
+
             if (!confirm('Are you sure you want to reactivate this client?')) return;
 
             const client = clients.find(c => c.id === clientId);
@@ -1168,12 +1321,12 @@
             });
 
             // Update in Firebase
-            clientsRef.child(clientId).set(updatedClient);
-
-            alert('Client reactivated successfully!');
+            writeToFirebase(`clients/${clientId}`, updatedClient, () => {
+                alert('Client reactivated successfully!');
+            });
         }
 
-        // UPDATED RETENTION CALCULATION FUNCTIONS - Modified to show "Retention in Months"
+        // UPDATED RETENTION CALCULATION FUNCTIONS
         function calculateTimeInsights(period) {
             let totalMonths = 0;
             const healthChanges = [];
@@ -1207,7 +1360,6 @@
             const trendDirection = avgHealthChange > 0 ? 'Improving' : avgHealthChange < 0 ? 'Declining' : 'Stable';
             
             return {
-                // CHANGED: avgRelationship becomes avgRetentionMonths
                 avgRetentionMonths: `<strong>${avgRetentionMonths} months</strong>`,
                 retentionRate: `<strong>${retentionData.rate}%</strong> (${retentionData.details})`,
                 healthTrend: `<strong>${trendDirection} (${avgHealthChange > 0 ? '+' : ''}${avgHealthChange.toFixed(1)})</strong>`,
@@ -1297,7 +1449,6 @@
             updateTimelineView(viewType, period);
         }
 
-        // UPDATED FUNCTION: Display "Retention in Months" instead of "Average Relationship"
         function updateTimeInsights(period) {
             const insights = calculateTimeInsights(period);
             const insightsContainer = document.getElementById('time-insights');
@@ -1729,12 +1880,12 @@
                     <td>
                         <div class="action-buttons">
                             ${!client.isOffboarded ? `
-                                <button class="action-btn edit-btn" onclick="editClient('${client.id}')" title="Edit Client">✏️</button>
-                                <button class="action-btn offboard-btn" onclick="openOffboardModal('${client.id}')" title="Offboard Client">🏃‍♂️</button>
+                                <button class="action-btn edit-btn" onclick="editClient('${client.id}')" title="Edit Client" ${!currentUser ? 'disabled' : ''}>✏️</button>
+                                <button class="action-btn offboard-btn" onclick="openOffboardModal('${client.id}')" title="Offboard Client" ${!currentUser ? 'disabled' : ''}>🏃‍♂️</button>
                             ` : `
-                                <button class="action-btn reactivate-btn" onclick="reactivateClient('${client.id}')" title="Reactivate Client">🔄</button>
+                                <button class="action-btn reactivate-btn" onclick="reactivateClient('${client.id}')" title="Reactivate Client" ${!currentUser ? 'disabled' : ''}>🔄</button>
                             `}
-                            <button class="action-btn delete-btn" onclick="deleteClient('${client.id}')" title="Delete Client">🗑️</button>
+                            <button class="action-btn delete-btn" onclick="deleteClient('${client.id}')" title="Delete Client" ${!currentUser ? 'disabled' : ''}>🗑️</button>
                         </div>
                     </td>`;
                 
@@ -1751,6 +1902,11 @@
 
         // Toggle form
         function toggleForm() {
+            if (!currentUser) {
+                showError('Please sign in to add clients');
+                return;
+            }
+            
             const form = document.getElementById('client-form');
             form.classList.toggle('hidden');
             
@@ -1787,6 +1943,11 @@
 
         // Edit client
         function editClient(id) {
+            if (!currentUser) {
+                showError('Please sign in to edit clients');
+                return;
+            }
+
             const client = clients.find(c => c.id === id);
             if (!client) {
                 alert('Client not found');
@@ -1890,16 +2051,19 @@
             });
 
             // Update in Firebase
-            clientsRef.child(currentEditingClientId).set(updatedClient);
-
-            // Close form and reset
-            cancelForm();
-            
-            alert('Client updated successfully!');
+            writeToFirebase(`clients/${currentEditingClientId}`, updatedClient, () => {
+                cancelForm();
+                alert('Client updated successfully!');
+            });
         }
 
         // Add client
         function addClient() {
+            if (!currentUser) {
+                showError('Please sign in to add clients');
+                return;
+            }
+
             const name = document.getElementById('name').value.trim();
             const joinDate = document.getElementById('join-date').value;
             const nps = parseFloat(document.getElementById('nps').value) || 7;
@@ -1952,42 +2116,60 @@
             };
 
             // Save to Firebase
-            clientsRef.child(newClient.id).set(newClient);
+            writeToFirebase(`clients/${newClient.id}`, newClient, () => {
+                // Clear form
+                document.getElementById('name').value = '';
+                document.getElementById('join-date').value = new Date().toISOString().split('T')[0];
+                document.getElementById('nps').value = '7';
+                document.getElementById('showup').value = '85';
+                document.getElementById('response').value = '2';
+                document.getElementById('participation').value = '7';
+                document.getElementById('scheduled').value = 'true';
+                document.getElementById('survey').value = 'true';
 
-            // Clear form
-            document.getElementById('name').value = '';
-            document.getElementById('join-date').value = new Date().toISOString().split('T')[0];
-            document.getElementById('nps').value = '7';
-            document.getElementById('showup').value = '85';
-            document.getElementById('response').value = '2';
-            document.getElementById('participation').value = '7';
-            document.getElementById('scheduled').value = 'true';
-            document.getElementById('survey').value = 'true';
-
-            toggleForm();
+                toggleForm();
+                alert('Client added successfully!');
+            });
         }
 
         // Delete client
         function deleteClient(id) {
+            if (!currentUser) {
+                showError('Please sign in to delete clients');
+                return;
+            }
+
             const client = clients.find(c => c.id === id);
             const clientName = client ? client.name : 'this client';
             
             if (confirm(`Are you sure you want to permanently delete ${clientName}? This action cannot be undone.`)) {
-                clientsRef.child(id).remove();
+                removeFromFirebase(`clients/${id}`, () => {
+                    alert('Client deleted successfully!');
+                });
             }
         }
 
         // Update sync indicator
-        function updateSyncIndicator(isConnected) {
+        function updateSyncIndicator(status, message = '') {
             const dot = document.getElementById('sync-dot');
-            const status = document.getElementById('sync-status');
+            const statusText = document.getElementById('sync-status');
             
-            if (isConnected) {
-                dot.classList.remove('offline');
-                status.textContent = 'Connected';
-            } else {
-                dot.classList.add('offline');
-                status.textContent = 'Offline';
+            dot.className = 'sync-dot';
+            
+            switch(status) {
+                case 'connected':
+                    statusText.textContent = 'Connected';
+                    break;
+                case 'offline':
+                    dot.classList.add('offline');
+                    statusText.textContent = 'Offline';
+                    break;
+                case 'error':
+                    dot.classList.add('error');
+                    statusText.textContent = message || 'Error';
+                    break;
+                default:
+                    statusText.textContent = 'Connecting...';
             }
         }
 
@@ -1999,6 +2181,20 @@
             }
         }
 
+        // Initialize Firebase Auth listener
+        auth.onAuthStateChanged((user) => {
+            currentUser = user;
+            updateAuthUI();
+            
+            if (user) {
+                console.log('User authenticated:', user.uid);
+                updateSyncIndicator('connected');
+            } else {
+                console.log('User not authenticated');
+                updateSyncIndicator('offline', 'Not authenticated');
+            }
+        });
+
         // Initialize Firebase listeners
         clientsRef.on('value', (snapshot) => {
             clients = [];
@@ -2006,105 +2202,123 @@
                 clients.push(childSnapshot.val());
             });
             updateDashboard();
+        }, (error) => {
+            console.error('Failed to read data:', error);
+            updateSyncIndicator('error', 'Read Error');
+            showError('Failed to load data: ' + error.message);
         });
 
         // Monitor connection state
         const connectedRef = database.ref('.info/connected');
         connectedRef.on('value', (snapshot) => {
-            updateSyncIndicator(snapshot.val() === true);
+            if (snapshot.val() === true && currentUser) {
+                updateSyncIndicator('connected');
+            } else if (snapshot.val() === false) {
+                updateSyncIndicator('offline');
+            }
         });
 
-        // Initialize with sample data if database is empty
-        clientsRef.once('value', (snapshot) => {
-            if (!snapshot.exists()) {
-                const sampleClients = [
-                    {
-                        id: '1',
-                        name: "Acme Corp",
-                        joinDate: "2023-01-15",
-                        nps: 9,
-                        sessionShowUp: 95,
-                        messageResponseTime: 1,
-                        sessionScheduled: true,
-                        participationLevel: 8.5,
-                        surveyFilled: true,
-                        isOffboarded: false,
-                        timeline: [
-                            { date: "2023-01-15", event: "Client Onboarded", score: 7.5, type: "milestone" },
-                            { date: "2023-03-20", event: "First Health Check", score: 8.0, type: "assessment" },
-                            { date: "2023-06-10", event: "Quarterly Review", score: 8.3, type: "review" },
-                            { date: "2023-09-15", event: "Contract Renewal", score: 8.7, type: "milestone" },
-                            { date: "2024-01-20", event: "Annual Review", score: 9.0, type: "review" },
-                            { date: "2024-12-01", event: "Current Status", score: 9.0, type: "current" }
-                        ]
-                    },
-                    {
-                        id: '2',
-                        name: "TechStart Inc",
-                        joinDate: "2023-06-01",
-                        nps: 7,
-                        sessionShowUp: 75,
-                        messageResponseTime: 2.5,
-                        sessionScheduled: false,
-                        participationLevel: 6,
-                        surveyFilled: true,
-                        isOffboarded: false,
-                        timeline: [
-                            { date: "2023-06-01", event: "Client Onboarded", score: 8.2, type: "milestone" },
-                            { date: "2023-08-15", event: "First Health Check", score: 7.8, type: "assessment" },
-                            { date: "2023-11-30", event: "Quarterly Review", score: 7.5, type: "review" },
-                            { date: "2024-03-10", event: "Support Escalation", score: 7.2, type: "incident" },
-                            { date: "2024-06-01", event: "Contract Renewal", score: 7.1, type: "milestone" },
-                            { date: "2024-12-01", event: "Current Status", score: 7.1, type: "current" }
-                        ]
-                    },
-                    {
-                        id: '3',
-                        name: "Global Solutions",
-                        joinDate: "2024-02-10",
-                        nps: 4,
-                        sessionShowUp: 45,
-                        messageResponseTime: 5,
-                        sessionScheduled: false,
-                        participationLevel: 3,
-                        surveyFilled: false,
-                        isOffboarded: false,
-                        timeline: [
-                            { date: "2024-02-10", event: "Client Onboarded", score: 6.8, type: "milestone" },
-                            { date: "2024-04-15", event: "First Health Check", score: 6.2, type: "assessment" },
-                            { date: "2024-07-20", event: "Quarterly Review", score: 5.5, type: "review" },
-                            { date: "2024-09-30", event: "Escalation Required", score: 4.8, type: "incident" },
-                            { date: "2024-12-01", event: "Critical Status", score: 4.2, type: "current" }
-                        ]
-                    },
-                    {
-                        id: '4',
-                        name: "Legacy Corp",
-                        joinDate: "2022-03-01",
-                        nps: 6,
-                        sessionShowUp: 60,
-                        messageResponseTime: 4,
-                        sessionScheduled: true,
-                        participationLevel: 5,
-                        surveyFilled: false,
-                        isOffboarded: true,
-                        offboardDate: "2024-11-15",
-                        timeline: [
-                            { date: "2022-03-01", event: "Client Onboarded", score: 7.8, type: "milestone" },
-                            { date: "2022-09-15", event: "First Health Check", score: 7.2, type: "assessment" },
-                            { date: "2023-03-01", event: "Annual Review", score: 6.8, type: "review" },
-                            { date: "2024-01-10", event: "Support Issues", score: 6.2, type: "incident" },
-                            { date: "2024-11-15", event: "Client Offboarded", score: 6.0, type: "offboard" }
-                        ]
-                    }
-                ];
+        // Initialize with sample data if database is empty (only if authenticated)
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                clientsRef.once('value', (snapshot) => {
+                    if (!snapshot.exists()) {
+                        const sampleClients = [
+                            {
+                                id: '1',
+                                name: "Acme Corp",
+                                joinDate: "2023-01-15",
+                                nps: 9,
+                                sessionShowUp: 95,
+                                messageResponseTime: 1,
+                                sessionScheduled: true,
+                                participationLevel: 8.5,
+                                surveyFilled: true,
+                                isOffboarded: false,
+                                timeline: [
+                                    { date: "2023-01-15", event: "Client Onboarded", score: 7.5, type: "milestone" },
+                                    { date: "2023-03-20", event: "First Health Check", score: 8.0, type: "assessment" },
+                                    { date: "2023-06-10", event: "Quarterly Review", score: 8.3, type: "review" },
+                                    { date: "2023-09-15", event: "Contract Renewal", score: 8.7, type: "milestone" },
+                                    { date: "2024-01-20", event: "Annual Review", score: 9.0, type: "review" },
+                                    { date: "2024-12-01", event: "Current Status", score: 9.0, type: "current" }
+                                ]
+                            },
+                            {
+                                id: '2',
+                                name: "TechStart Inc",
+                                joinDate: "2023-06-01",
+                                nps: 7,
+                                sessionShowUp: 75,
+                                messageResponseTime: 2.5,
+                                sessionScheduled: false,
+                                participationLevel: 6,
+                                surveyFilled: true,
+                                isOffboarded: false,
+                                timeline: [
+                                    { date: "2023-06-01", event: "Client Onboarded", score: 8.2, type: "milestone" },
+                                    { date: "2023-08-15", event: "First Health Check", score: 7.8, type: "assessment" },
+                                    { date: "2023-11-30", event: "Quarterly Review", score: 7.5, type: "review" },
+                                    { date: "2024-03-10", event: "Support Escalation", score: 7.2, type: "incident" },
+                                    { date: "2024-06-01", event: "Contract Renewal", score: 7.1, type: "milestone" },
+                                    { date: "2024-12-01", event: "Current Status", score: 7.1, type: "current" }
+                                ]
+                            },
+                            {
+                                id: '3',
+                                name: "Global Solutions",
+                                joinDate: "2024-02-10",
+                                nps: 4,
+                                sessionShowUp: 45,
+                                messageResponseTime: 5,
+                                sessionScheduled: false,
+                                participationLevel: 3,
+                                surveyFilled: false,
+                                isOffboarded: false,
+                                timeline: [
+                                    { date: "2024-02-10", event: "Client Onboarded", score: 6.8, type: "milestone" },
+                                    { date: "2024-04-15", event: "First Health Check", score: 6.2, type: "assessment" },
+                                    { date: "2024-07-20", event: "Quarterly Review", score: 5.5, type: "review" },
+                                    { date: "2024-09-30", event: "Escalation Required", score: 4.8, type: "incident" },
+                                    { date: "2024-12-01", event: "Critical Status", score: 4.2, type: "current" }
+                                ]
+                            },
+                            {
+                                id: '4',
+                                name: "Legacy Corp",
+                                joinDate: "2022-03-01",
+                                nps: 6,
+                                sessionShowUp: 60,
+                                messageResponseTime: 4,
+                                sessionScheduled: true,
+                                participationLevel: 5,
+                                surveyFilled: false,
+                                isOffboarded: true,
+                                offboardDate: "2024-11-15",
+                                timeline: [
+                                    { date: "2022-03-01", event: "Client Onboarded", score: 7.8, type: "milestone" },
+                                    { date: "2022-09-15", event: "First Health Check", score: 7.2, type: "assessment" },
+                                    { date: "2023-03-01", event: "Annual Review", score: 6.8, type: "review" },
+                                    { date: "2024-01-10", event: "Support Issues", score: 6.2, type: "incident" },
+                                    { date: "2024-11-15", event: "Client Offboarded", score: 6.0, type: "offboard" }
+                                ]
+                            }
+                        ];
 
-                // Save sample data to Firebase
-                sampleClients.forEach(client => {
-                    clientsRef.child(client.id).set(client);
+                        // Save sample data to Firebase
+                        sampleClients.forEach(client => {
+                            writeToFirebase(`clients/${client.id}`, client);
+                        });
+                    }
                 });
             }
         });
     </script>
 </body>
-</html>
+</html>>Health Score Overview</h3>
+                <div class="chart-container" id="score-chart">
+                    <!-- Chart will be generated here -->
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3
