@@ -453,10 +453,18 @@
             </div>
         </div>
 
-        <!-- Add Client Button -->
-        <button class="btn" onclick="addSampleClient()" id="add-sample-btn">
-            ➕ Add Sample Client (Test Connection)
-        </button>
+        <!-- Client Management Actions -->
+        <div style="display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap;">
+            <button class="btn" onclick="showAddClientModal()" id="add-client-btn">
+                ➕ Add New Client
+            </button>
+            <button class="btn btn-secondary" onclick="addSampleClient()" id="add-sample-btn">
+                🧪 Add Sample Client (Test)
+            </button>
+            <button class="btn btn-warning" onclick="exportClients()" id="export-btn">
+                📊 Export Data
+            </button>
+        </div>
 
         <!-- Client Table -->
         <div class="table-section">
@@ -472,6 +480,7 @@
                             <th>NPS</th>
                             <th>Health Score</th>
                             <th>Status</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="client-table">
@@ -482,6 +491,65 @@
                         </tr>
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Client Modal -->
+    <div id="client-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 id="modal-title">Add New Client</h2>
+                <button onclick="closeClientModal()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280;">×</button>
+            </div>
+            
+            <form id="client-form" onsubmit="saveClient(event)">
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 500; color: #374151;">Client Name *</label>
+                    <input type="text" id="client-name" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 500; color: #374151;">Email</label>
+                    <input type="email" id="client-email" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 500; color: #374151;">Phone</label>
+                    <input type="tel" id="client-phone" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 500; color: #374151;">Join Date *</label>
+                    <input type="date" id="client-join-date" required style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                </div>
+                
+                <div style="margin-bottom: 16px;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 500; color: #374151;">NPS Score (1-10)</label>
+                    <input type="number" id="client-nps" min="1" max="10" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px;">
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 6px; font-weight: 500; color: #374151;">Notes</label>
+                    <textarea id="client-notes" rows="3" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; resize: vertical;"></textarea>
+                </div>
+                
+                <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                    <button type="button" onclick="closeClientModal()" class="btn btn-secondary">Cancel</button>
+                    <button type="submit" class="btn btn-success" id="save-client-btn">Save Client</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;">
+        <div style="background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px;">
+            <h3 style="margin-bottom: 16px; color: #dc2626;">Delete Client</h3>
+            <p style="margin-bottom: 20px; color: #6b7280;">Are you sure you want to delete this client? This action cannot be undone.</p>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+                <button onclick="closeDeleteModal()" class="btn btn-secondary">Cancel</button>
+                <button onclick="confirmDelete()" class="btn" style="background-color: #dc2626;">Delete</button>
             </div>
         </div>
     </div>
@@ -706,8 +774,8 @@
             if (clients.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
-                        <td colspan="5" style="text-align: center; color: #6b7280; padding: 40px;">
-                            No clients found. ${currentUser ? 'Try adding a sample client to test the connection.' : 'Please sign in first.'}
+                        <td colspan="6" style="text-align: center; color: #6b7280; padding: 40px;">
+                            No clients found. ${currentUser ? 'Click "Add New Client" to get started.' : 'Please sign in first.'}
                         </td>
                     </tr>`;
                 return;
@@ -725,16 +793,248 @@
 
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td><strong>${client.name}</strong></td>
+                    <td>
+                        <div>
+                            <strong>${client.name}</strong>
+                            ${client.email ? `<br><small style="color: #6b7280;">${client.email}</small>` : ''}
+                        </div>
+                    </td>
                     <td>${joinDate}</td>
                     <td>${client.nps || 'N/A'}</td>
                     <td><strong>${healthScore.toFixed(1)}</strong></td>
                     <td><span class="status-value ${category.color === 'healthy' ? 'good' : category.color === 'at-risk' ? 'warning' : 'bad'}">${category.label}</span></td>
+                    <td>
+                        <div style="display: flex; gap: 8px;">
+                            <button onclick="editClient('${client.id}')" class="btn" style="padding: 4px 8px; font-size: 12px; background-color: #3b82f6;">✏️ Edit</button>
+                            <button onclick="deleteClient('${client.id}')" class="btn" style="padding: 4px 8px; font-size: 12px; background-color: #dc2626;">🗑️ Delete</button>
+                        </div>
+                    </td>
                 `;
                 
                 tableBody.appendChild(row);
             });
         }
+
+        // ============================================
+        // CLIENT MANAGEMENT FUNCTIONS
+        // ============================================
+        
+        let currentEditingClient = null;
+        let clientToDelete = null;
+
+        // Show add client modal
+        function showAddClientModal() {
+            if (!currentUser) {
+                showError('Please sign in first');
+                return;
+            }
+            
+            currentEditingClient = null;
+            document.getElementById('modal-title').textContent = 'Add New Client';
+            document.getElementById('save-client-btn').textContent = 'Save Client';
+            document.getElementById('client-form').reset();
+            
+            // Set default join date to today
+            document.getElementById('client-join-date').value = new Date().toISOString().split('T')[0];
+            
+            document.getElementById('client-modal').style.display = 'flex';
+        }
+
+        // Edit client
+        function editClient(clientId) {
+            if (!currentUser) {
+                showError('Please sign in first');
+                return;
+            }
+            
+            const client = clients.find(c => c.id === clientId);
+            if (!client) {
+                showError('Client not found');
+                return;
+            }
+            
+            currentEditingClient = client;
+            document.getElementById('modal-title').textContent = 'Edit Client';
+            document.getElementById('save-client-btn').textContent = 'Update Client';
+            
+            // Populate form
+            document.getElementById('client-name').value = client.name || '';
+            document.getElementById('client-email').value = client.email || '';
+            document.getElementById('client-phone').value = client.phone || '';
+            document.getElementById('client-join-date').value = client.joinDate || '';
+            document.getElementById('client-nps').value = client.nps || '';
+            document.getElementById('client-notes').value = client.notes || '';
+            
+            document.getElementById('client-modal').style.display = 'flex';
+        }
+
+        // Close client modal
+        function closeClientModal() {
+            document.getElementById('client-modal').style.display = 'none';
+            currentEditingClient = null;
+        }
+
+        // Save client (add or update)
+        function saveClient(event) {
+            event.preventDefault();
+            
+            if (!currentUser) {
+                showError('Please sign in first');
+                return;
+            }
+            
+            const formData = {
+                name: document.getElementById('client-name').value.trim(),
+                email: document.getElementById('client-email').value.trim(),
+                phone: document.getElementById('client-phone').value.trim(),
+                joinDate: document.getElementById('client-join-date').value,
+                nps: parseInt(document.getElementById('client-nps').value) || null,
+                notes: document.getElementById('client-notes').value.trim()
+            };
+            
+            if (!formData.name) {
+                showError('Client name is required');
+                return;
+            }
+            
+            if (!formData.joinDate) {
+                showError('Join date is required');
+                return;
+            }
+            
+            let clientData;
+            let clientRef;
+            
+            if (currentEditingClient) {
+                // Update existing client
+                clientData = {
+                    ...currentEditingClient,
+                    ...formData,
+                    updatedAt: new Date().toISOString()
+                };
+                clientRef = database.ref(`clients/${currentEditingClient.id}`);
+                console.log('Updating client:', clientData);
+            } else {
+                // Add new client
+                const clientId = Date.now().toString();
+                clientData = {
+                    id: clientId,
+                    ...formData,
+                    createdAt: new Date().toISOString()
+                };
+                clientRef = database.ref(`clients/${clientId}`);
+                console.log('Adding new client:', clientData);
+            }
+            
+            // Save to Firebase
+            clientRef.set(clientData)
+                .then(() => {
+                    console.log('Client saved successfully');
+                    closeClientModal();
+                    hideError();
+                })
+                .catch((error) => {
+                    logError(error, 'Save Client');
+                });
+        }
+
+        // Delete client
+        function deleteClient(clientId) {
+            if (!currentUser) {
+                showError('Please sign in first');
+                return;
+            }
+            
+            const client = clients.find(c => c.id === clientId);
+            if (!client) {
+                showError('Client not found');
+                return;
+            }
+            
+            clientToDelete = client;
+            document.getElementById('delete-modal').style.display = 'flex';
+        }
+
+        // Close delete modal
+        function closeDeleteModal() {
+            document.getElementById('delete-modal').style.display = 'none';
+            clientToDelete = null;
+        }
+
+        // Confirm delete
+        function confirmDelete() {
+            if (!clientToDelete || !currentUser) {
+                closeDeleteModal();
+                return;
+            }
+            
+            console.log('Deleting client:', clientToDelete.id);
+            
+            database.ref(`clients/${clientToDelete.id}`).remove()
+                .then(() => {
+                    console.log('Client deleted successfully');
+                    closeDeleteModal();
+                    hideError();
+                })
+                .catch((error) => {
+                    logError(error, 'Delete Client');
+                    closeDeleteModal();
+                });
+        }
+
+        // Export clients data
+        function exportClients() {
+            if (clients.length === 0) {
+                showError('No clients to export');
+                return;
+            }
+            
+            const csvData = [
+                ['Name', 'Email', 'Phone', 'Join Date', 'NPS Score', 'Health Score', 'Status', 'Notes'],
+                ...clients.map(client => {
+                    const healthScore = calculateHealthScore(client);
+                    const category = getHealthCategory(healthScore);
+                    return [
+                        client.name || '',
+                        client.email || '',
+                        client.phone || '',
+                        client.joinDate || '',
+                        client.nps || '',
+                        healthScore.toFixed(1),
+                        category.label,
+                        client.notes || ''
+                    ];
+                })
+            ];
+            
+            const csvContent = csvData.map(row =>
+                row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(',')
+            ).join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            const url = URL.createObjectURL(blob);
+            link.setAttribute('href', url);
+            link.setAttribute('download', `clients_export_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Close modals when clicking outside
+        document.addEventListener('click', function(event) {
+            const clientModal = document.getElementById('client-modal');
+            const deleteModal = document.getElementById('delete-modal');
+            
+            if (event.target === clientModal) {
+                closeClientModal();
+            }
+            
+            if (event.target === deleteModal) {
+                closeDeleteModal();
+            }
+        });
 
         // Add sample client for testing
         function addSampleClient() {
