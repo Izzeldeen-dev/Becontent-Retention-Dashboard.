@@ -760,6 +760,220 @@
             margin-bottom: 4px;
         }
         
+        .account-manager-section {
+            background: white;
+            padding: 24px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+        }
+        
+        .section-header {
+            margin-bottom: 24px;
+            border-bottom: 1px solid #e5e7eb;
+            padding-bottom: 16px;
+        }
+        
+        .section-header h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 4px;
+        }
+        
+        .section-header p {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+        
+        .manager-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+        
+        .manager-card {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .manager-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: #3b82f6;
+        }
+        
+        .manager-card.no-manager {
+            background: linear-gradient(135deg, #fef7f0 0%, #fef3e2 100%);
+            border-color: #fed7aa;
+        }
+        
+        .manager-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+        }
+        
+        .manager-card.no-manager::before {
+            background: linear-gradient(90deg, #f59e0b, #d97706);
+        }
+        
+        .manager-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+        
+        .manager-info h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 4px;
+        }
+        
+        .manager-info .client-count {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+        
+        .manager-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1.125rem;
+        }
+        
+        .manager-avatar.no-manager {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+        
+        .manager-metrics {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .metric-item {
+            text-align: center;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        
+        .metric-value.health-score {
+            color: #059669;
+        }
+        
+        .metric-value.retention-rate {
+            color: #3b82f6;
+        }
+        
+        .metric-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        
+        .client-distribution {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .distribution-item {
+            flex: 1;
+            text-align: center;
+            padding: 8px 4px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        
+        .distribution-item.healthy {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .distribution-item.at-risk {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .distribution-item.critical {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .distribution-item.offboarded {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+        
+        .manager-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .action-link {
+            flex: 1;
+            padding: 8px 12px;
+            background: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+        
+        .action-link:hover {
+            background: #1d4ed8;
+            color: white;
+        }
+        
+        .action-link.secondary {
+            background: #6b7280;
+        }
+        
+        .action-link.secondary:hover {
+            background: #4b5563;
+        }
+        
+        .no-managers-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
         .hidden {
             display: none;
         }
@@ -1000,6 +1214,17 @@
             </div>
         </div>
 
+        <!-- Account Manager Performance Section -->
+        <div class="account-manager-section">
+            <div class="section-header">
+                <h2>👥 Account Manager Performance</h2>
+                <p>Track performance metrics and client health scores by account manager</p>
+            </div>
+            <div class="manager-cards-grid" id="manager-cards-grid">
+                <!-- Manager cards will be inserted here -->
+            </div>
+        </div>
+
         <!-- Client Table -->
         <div class="table-section">
             <div class="table-header">
@@ -1010,6 +1235,10 @@
                         <option value="all">All Clients</option>
                         <option value="active">Active Only</option>
                         <option value="offboarded">Offboarded Only</option>
+                    </select>
+                    <select id="manager-filter" onchange="updateTable()" style="margin-left: 10px;">
+                        <option value="all">All Managers</option>
+                        <!-- Manager options will be populated dynamically -->
                     </select>
                 </div>
             </div>
@@ -1481,10 +1710,194 @@
             document.getElementById('critical-clients').textContent = stats.critical;
             document.getElementById('offboarded-clients').textContent = stats.offboarded;
 
+            updateManagerPerformance();
             updateTable();
             updateAlerts();
             updateCharts();
             updateTimeFrame();
+        }
+
+        // Calculate manager performance metrics
+        function calculateManagerMetrics(managerName) {
+            const managerClients = clients.filter(client => {
+                if (managerName === 'Unassigned') {
+                    return !client.accountManager || client.accountManager.trim() === '';
+                }
+                return client.accountManager === managerName;
+            });
+
+            if (managerClients.length === 0) {
+                return {
+                    totalClients: 0,
+                    activeClients: 0,
+                    avgHealthScore: 0,
+                    retentionRate: 0,
+                    distribution: { healthy: 0, atRisk: 0, critical: 0, offboarded: 0 }
+                };
+            }
+
+            const activeClients = managerClients.filter(c => !c.isOffboarded);
+            const offboardedClients = managerClients.filter(c => c.isOffboarded);
+            
+            // Calculate average health score for active clients only
+            let totalHealthScore = 0;
+            let healthyCount = 0;
+            let atRiskCount = 0;
+            let criticalCount = 0;
+
+            activeClients.forEach(client => {
+                const healthScore = calculateHealthScore(client);
+                totalHealthScore += healthScore;
+                
+                const category = getHealthCategory(healthScore);
+                if (category.color === 'healthy') healthyCount++;
+                else if (category.color === 'at-risk') atRiskCount++;
+                else criticalCount++;
+            });
+
+            const avgHealthScore = activeClients.length > 0 ? (totalHealthScore / activeClients.length) : 0;
+            const retentionRate = managerClients.length > 0 ? ((activeClients.length / managerClients.length) * 100) : 0;
+
+            return {
+                totalClients: managerClients.length,
+                activeClients: activeClients.length,
+                avgHealthScore: avgHealthScore,
+                retentionRate: retentionRate,
+                distribution: {
+                    healthy: healthyCount,
+                    atRisk: atRiskCount,
+                    critical: criticalCount,
+                    offboarded: offboardedClients.length
+                }
+            };
+        }
+
+        // Get unique account managers
+        function getUniqueManagers() {
+            const managers = new Set();
+            let hasUnassigned = false;
+
+            clients.forEach(client => {
+                if (client.accountManager && client.accountManager.trim() !== '') {
+                    managers.add(client.accountManager.trim());
+                } else {
+                    hasUnassigned = true;
+                }
+            });
+
+            const managersList = Array.from(managers).sort();
+            if (hasUnassigned) {
+                managersList.push('Unassigned');
+            }
+
+            return managersList;
+        }
+
+        // Update manager performance section
+        function updateManagerPerformance() {
+            const container = document.getElementById('manager-cards-grid');
+            const managers = getUniqueManagers();
+
+            if (managers.length === 0) {
+                container.innerHTML = '<div class="no-managers-message">No account managers assigned yet. Assign managers to clients to see performance metrics.</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+
+            managers.forEach(manager => {
+                const metrics = calculateManagerMetrics(manager);
+                const isUnassigned = manager === 'Unassigned';
+                
+                // Get manager initials for avatar
+                const initials = isUnassigned ? '?' : manager.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                
+                const card = document.createElement('div');
+                card.className = `manager-card ${isUnassigned ? 'no-manager' : ''}`;
+                card.onclick = () => filterByManager(manager);
+                
+                card.innerHTML = `
+                    <div class="manager-header">
+                        <div class="manager-info">
+                            <h3>${isUnassigned ? 'Unassigned Clients' : manager}</h3>
+                            <div class="client-count">${metrics.totalClients} total clients</div>
+                        </div>
+                        <div class="manager-avatar ${isUnassigned ? 'no-manager' : ''}">${initials}</div>
+                    </div>
+                    
+                    <div class="manager-metrics">
+                        <div class="metric-item">
+                            <div class="metric-value health-score">${metrics.avgHealthScore.toFixed(1)}</div>
+                            <div class="metric-label">Avg Health Score</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value retention-rate">${metrics.retentionRate.toFixed(0)}%</div>
+                            <div class="metric-label">Retention Rate</div>
+                        </div>
+                    </div>
+                    
+                    <div class="client-distribution">
+                        <div class="distribution-item healthy">
+                            <div>${metrics.distribution.healthy}</div>
+                            <div>Healthy</div>
+                        </div>
+                        <div class="distribution-item at-risk">
+                            <div>${metrics.distribution.atRisk}</div>
+                            <div>At Risk</div>
+                        </div>
+                        <div class="distribution-item critical">
+                            <div>${metrics.distribution.critical}</div>
+                            <div>Critical</div>
+                        </div>
+                        <div class="distribution-item offboarded">
+                            <div>${metrics.distribution.offboarded}</div>
+                            <div>Off.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="manager-actions">
+                        <a href="#" class="action-link" onclick="event.stopPropagation(); filterByManager('${manager}')">View Clients</a>
+                        <a href="#" class="action-link secondary" onclick="event.stopPropagation(); scrollToTable()">Go to Table</a>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+
+            // Update manager filter dropdown
+            updateManagerFilter();
+        }
+
+        // Update manager filter dropdown
+        function updateManagerFilter() {
+            const managerFilter = document.getElementById('manager-filter');
+            const managers = getUniqueManagers();
+            
+            // Clear existing options except "All Managers"
+            managerFilter.innerHTML = '<option value="all">All Managers</option>';
+            
+            managers.forEach(manager => {
+                const option = document.createElement('option');
+                option.value = manager;
+                option.textContent = manager === 'Unassigned' ? 'Unassigned Clients' : manager;
+                managerFilter.appendChild(option);
+            });
+        }
+
+        // Filter by manager
+        function filterByManager(managerName) {
+            const managerFilter = document.getElementById('manager-filter');
+            managerFilter.value = managerName;
+            updateTable();
+            scrollToTable();
+        }
+
+        // Scroll to table
+        function scrollToTable() {
+            document.querySelector('.table-section').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
         }
 
         // Update alerts
@@ -1709,14 +2122,26 @@
         // Update table
         function updateTable() {
             const tableBody = document.getElementById('client-table');
-            const filter = document.getElementById('client-status-filter').value;
+            const statusFilter = document.getElementById('client-status-filter').value;
+            const managerFilter = document.getElementById('manager-filter').value;
             tableBody.innerHTML = '';
 
             let filteredClients = clients;
-            if (filter === 'active') {
-                filteredClients = clients.filter(c => !c.isOffboarded);
-            } else if (filter === 'offboarded') {
-                filteredClients = clients.filter(c => c.isOffboarded);
+            
+            // Apply status filter
+            if (statusFilter === 'active') {
+                filteredClients = filteredClients.filter(c => !c.isOffboarded);
+            } else if (statusFilter === 'offboarded') {
+                filteredClients = filteredClients.filter(c => c.isOffboarded);
+            }
+            
+            // Apply manager filter
+            if (managerFilter !== 'all') {
+                if (managerFilter === 'Unassigned') {
+                    filteredClients = filteredClients.filter(c => !c.accountManager || c.accountManager.trim() === '');
+                } else {
+                    filteredClients = filteredClients.filter(c => c.accountManager === managerFilter);
+                }
             }
 
             filteredClients.forEach(client => {
