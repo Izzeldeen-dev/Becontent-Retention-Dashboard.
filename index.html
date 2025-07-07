@@ -191,11 +191,20 @@
             margin-bottom: 4px;
         }
         
-        .form-group input, .form-group select {
+        .form-group input, .form-group select, .form-group textarea {
             padding: 8px 12px;
             border: 1px solid #d1d5db;
             border-radius: 4px;
             font-size: 0.875rem;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        
+        .form-group.full-width {
+            grid-column: 1 / -1;
         }
         
         .table-section {
@@ -316,6 +325,26 @@
             font-size: 0.75rem;
             color: #6b7280;
             line-height: 1.4;
+        }
+        
+        .account-manager {
+            font-size: 0.875rem;
+            color: #2563eb;
+            font-weight: 500;
+        }
+        
+        .notes {
+            font-size: 0.75rem;
+            color: #6b7280;
+            line-height: 1.4;
+            max-width: 200px;
+            word-wrap: break-word;
+        }
+        
+        .notes:empty::before {
+            content: "No notes";
+            color: #9ca3af;
+            font-style: italic;
         }
         
         .action-btn {
@@ -927,6 +956,10 @@
                     <input type="date" id="join-date" value="">
                 </div>
                 <div class="form-group">
+                    <label>Account Manager</label>
+                    <input type="text" id="account-manager" placeholder="Enter account manager name">
+                </div>
+                <div class="form-group">
                     <label>NPS Score (0-10)</label>
                     <input type="number" id="nps" min="0" max="10" step="0.1" value="7">
                 </div>
@@ -956,6 +989,10 @@
                         <option value="false">No</option>
                     </select>
                 </div>
+                <div class="form-group full-width">
+                    <label>Notes</label>
+                    <textarea id="notes" placeholder="Enter any notes about this client"></textarea>
+                </div>
             </div>
             <div>
                 <button class="btn btn-success" id="submit-btn" onclick="addClient()">Add Client</button>
@@ -982,11 +1019,13 @@
                         <tr>
                             <th>Client</th>
                             <th>Join Date & Month</th>
+                            <th>Account Manager</th>
                             <th>NPS</th>
                             <th>Engagement</th>
                             <th>Health Score</th>
                             <th>Status</th>
                             <th>Details</th>
+                            <th>Notes</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -1715,6 +1754,9 @@
                         ${joinDate}
                         <span class="month-indicator">${getOrdinal(clientMonth)} Month</span>
                     </td>
+                    <td>
+                        <div class="account-manager">${client.accountManager || 'Not assigned'}</div>
+                    </td>
                     <td>${client.nps.toFixed(1)}</td>
                     <td>${engagementScore.toFixed(1)}</td>
                     <td><strong>${client.isOffboarded ? 'N/A' : healthScore.toFixed(1)}</strong></td>
@@ -1725,6 +1767,9 @@
                         Scheduled: ${client.sessionScheduled ? 'Yes' : 'No'}<br>
                         Participation: ${client.participationLevel}<br>
                         Survey: ${client.surveyFilled ? 'Yes' : 'No'}
+                    </td>
+                    <td>
+                        <div class="notes">${client.notes || ''}</div>
                     </td>
                     <td>
                         <div class="action-buttons">
@@ -1770,12 +1815,14 @@
             // Clear form
             document.getElementById('name').value = '';
             document.getElementById('join-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('account-manager').value = '';
             document.getElementById('nps').value = '7';
             document.getElementById('showup').value = '85';
             document.getElementById('response').value = '2';
             document.getElementById('participation').value = '7';
             document.getElementById('scheduled').value = 'true';
             document.getElementById('survey').value = 'true';
+            document.getElementById('notes').value = '';
         }
 
         // Cancel form
@@ -1808,12 +1855,14 @@
             // Populate form with client data
             document.getElementById('name').value = client.name;
             document.getElementById('join-date').value = client.joinDate || '';
+            document.getElementById('account-manager').value = client.accountManager || '';
             document.getElementById('nps').value = client.nps;
             document.getElementById('showup').value = client.sessionShowUp;
             document.getElementById('response').value = client.messageResponseTime;
             document.getElementById('participation').value = client.participationLevel;
             document.getElementById('scheduled').value = client.sessionScheduled.toString();
             document.getElementById('survey').value = client.surveyFilled.toString();
+            document.getElementById('notes').value = client.notes || '';
             
             // Show form
             document.getElementById('client-form').classList.remove('hidden');
@@ -1828,12 +1877,14 @@
 
             const name = document.getElementById('name').value.trim();
             const joinDate = document.getElementById('join-date').value;
+            const accountManager = document.getElementById('account-manager').value.trim();
             const nps = parseFloat(document.getElementById('nps').value) || 7;
             const sessionShowUp = parseInt(document.getElementById('showup').value) || 85;
             const messageResponseTime = parseFloat(document.getElementById('response').value) || 2;
             const participationLevel = parseFloat(document.getElementById('participation').value) || 7;
             const sessionScheduled = document.getElementById('scheduled').value === 'true';
             const surveyFilled = document.getElementById('survey').value === 'true';
+            const notes = document.getElementById('notes').value.trim();
 
             if (!name) {
                 alert('Please enter a client name');
@@ -1868,12 +1919,14 @@
                 ...existingClient,
                 name: name,
                 joinDate: joinDate,
+                accountManager: accountManager,
                 nps: nps,
                 sessionShowUp: sessionShowUp,
                 messageResponseTime: messageResponseTime,
                 sessionScheduled: sessionScheduled,
                 participationLevel: participationLevel,
                 surveyFilled: surveyFilled,
+                notes: notes,
                 updatedAt: new Date().toISOString()
             };
 
@@ -1902,12 +1955,14 @@
         function addClient() {
             const name = document.getElementById('name').value.trim();
             const joinDate = document.getElementById('join-date').value;
+            const accountManager = document.getElementById('account-manager').value.trim();
             const nps = parseFloat(document.getElementById('nps').value) || 7;
             const sessionShowUp = parseInt(document.getElementById('showup').value) || 85;
             const messageResponseTime = parseFloat(document.getElementById('response').value) || 2;
             const participationLevel = parseFloat(document.getElementById('participation').value) || 7;
             const sessionScheduled = document.getElementById('scheduled').value === 'true';
             const surveyFilled = document.getElementById('survey').value === 'true';
+            const notes = document.getElementById('notes').value.trim();
 
             if (!name) {
                 alert('Please enter a client name');
@@ -1933,12 +1988,14 @@
                 id: Date.now().toString(),
                 name: name,
                 joinDate: joinDate,
+                accountManager: accountManager,
                 nps: nps,
                 sessionShowUp: sessionShowUp,
                 messageResponseTime: messageResponseTime,
                 sessionScheduled: sessionScheduled,
                 participationLevel: participationLevel,
                 surveyFilled: surveyFilled,
+                notes: notes,
                 isOffboarded: false,
                 timeline: [
                     { 
@@ -1957,12 +2014,14 @@
             // Clear form
             document.getElementById('name').value = '';
             document.getElementById('join-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('account-manager').value = '';
             document.getElementById('nps').value = '7';
             document.getElementById('showup').value = '85';
             document.getElementById('response').value = '2';
             document.getElementById('participation').value = '7';
             document.getElementById('scheduled').value = 'true';
             document.getElementById('survey').value = 'true';
+            document.getElementById('notes').value = '';
 
             toggleForm();
         }
@@ -2022,12 +2081,14 @@
                         id: '1',
                         name: "Acme Corp",
                         joinDate: "2023-01-15",
+                        accountManager: "Sarah Johnson",
                         nps: 9,
                         sessionShowUp: 95,
                         messageResponseTime: 1,
                         sessionScheduled: true,
                         participationLevel: 8.5,
                         surveyFilled: true,
+                        notes: "Very engaged client, always provides valuable feedback. CEO is particularly interested in new features.",
                         isOffboarded: false,
                         timeline: [
                             { date: "2023-01-15", event: "Client Onboarded", score: 7.5, type: "milestone" },
@@ -2042,12 +2103,14 @@
                         id: '2',
                         name: "TechStart Inc",
                         joinDate: "2023-06-01",
+                        accountManager: "Mike Chen",
                         nps: 7,
                         sessionShowUp: 75,
                         messageResponseTime: 2.5,
                         sessionScheduled: false,
                         participationLevel: 6,
                         surveyFilled: true,
+                        notes: "Growing startup, sometimes struggles with scheduling. Team is very technical but needs more guidance on implementation.",
                         isOffboarded: false,
                         timeline: [
                             { date: "2023-06-01", event: "Client Onboarded", score: 8.2, type: "milestone" },
@@ -2062,12 +2125,14 @@
                         id: '3',
                         name: "Global Solutions",
                         joinDate: "2024-02-10",
+                        accountManager: "Jennifer Rodriguez",
                         nps: 4,
                         sessionShowUp: 45,
                         messageResponseTime: 5,
                         sessionScheduled: false,
                         participationLevel: 3,
                         surveyFilled: false,
+                        notes: "Struggling with adoption. Multiple stakeholders with different priorities. Requires immediate intervention and dedicated support.",
                         isOffboarded: false,
                         timeline: [
                             { date: "2024-02-10", event: "Client Onboarded", score: 6.8, type: "milestone" },
@@ -2081,12 +2146,14 @@
                         id: '4',
                         name: "Legacy Corp",
                         joinDate: "2022-03-01",
+                        accountManager: "David Park",
                         nps: 6,
                         sessionShowUp: 60,
                         messageResponseTime: 4,
                         sessionScheduled: true,
                         participationLevel: 5,
                         surveyFilled: false,
+                        notes: "Large enterprise client with complex requirements. Decision-making process was slow. Opted for competitor solution due to pricing concerns.",
                         isOffboarded: true,
                         offboardDate: "2024-11-15",
                         timeline: [
