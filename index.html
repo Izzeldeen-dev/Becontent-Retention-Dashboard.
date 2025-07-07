@@ -1424,6 +1424,102 @@
         .checklist-text {
             flex: 1;
         }
+        
+        /* Success Message Styles */
+        .success-message {
+            background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+            border: 1px solid #86efac;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 20px;
+            animation: slideInFromTop 0.3s ease-out;
+        }
+        
+        .success-content {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .success-icon {
+            font-size: 1.125rem;
+        }
+        
+        .success-text {
+            color: #166534;
+            font-weight: 500;
+            font-size: 0.875rem;
+        }
+        
+        .success-message.fade-out {
+            animation: fadeOut 0.3s ease-out forwards;
+        }
+        
+        @keyframes slideInFromTop {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+                transform: translateY(0);
+            }
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+        
+        /* Payment Modal Enhanced Styles */
+        .payment-modal-info {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+        
+        .modal-info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .info-item label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #6b7280;
+            text-transform: uppercase;
+        }
+        
+        .info-value {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #111827;
+        }
+        
+        .info-value.next-due {
+            color: #3b82f6;
+        }
+        
+        /* Animation for updating cards */
+        .payment-cards-grid.updating {
+            opacity: 0.7;
+            transition: opacity 0.2s ease;
+        }
     </style>
 </head>
 <body>
@@ -2156,6 +2252,12 @@
             
             // Update in Firebase
             clientsRef.child(clientId).set(updatedClient);
+            
+            // Show success feedback
+            showSuccessMessage(value ? 'Task marked as completed!' : 'Task marked as pending');
+            
+            // Update UI immediately
+            setTimeout(() => updatePaymentCardsImmediate(), 100);
         }
 
         // Mark payment as paid
@@ -2163,12 +2265,20 @@
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
             
-            const today = new Date().toISOString().split('T')[0];
+            // Calculate the due date for this payment cycle
+            const nextDue = calculateNextDueDate(
+                client.joinDate, 
+                client.billingCycle || 'monthly', 
+                client.lastPaidDate
+            );
+            
+            // Use the due date as the payment date (not today)
+            const paymentDate = nextDue ? nextDue.toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
             
             const updatedClient = {
                 ...client,
                 paymentStatus: 'paid',
-                lastPaidDate: today,
+                lastPaidDate: paymentDate,
                 reminderMessageSent: false, // Reset for next billing cycle
                 updatedAt: new Date().toISOString()
             };
@@ -2176,7 +2286,11 @@
             // Update in Firebase
             clientsRef.child(clientId).set(updatedClient);
             
-            alert('Payment marked as received! Checklist will update automatically.');
+            // Show success message
+            showSuccessMessage('Payment marked as received on due date!');
+            
+            // Update UI immediately without waiting for Firebase
+            updatePaymentCardsImmediate();
         }
 
         // Open payment modal
@@ -2185,12 +2299,69 @@
             if (!client) return;
             
             currentPaymentClientId = clientId;
+            
+            // Calculate current and next due dates
+            const currentDueDate = calculateNextDueDate(
+                client.joinDate, 
+                client.billingCycle || 'monthly', 
+                client.lastPaidDate
+            );
+            
+            const nextDueDate = calculateNextDueDate(
+                client.joinDate, 
+                client.billingCycle || 'monthly', 
+                currentDueDate ? currentDueDate.toISOString().split('T')[0] : client.lastPaidDate
+            );
+            
             document.getElementById('payment-client-name').textContent = client.name;
             document.getElementById('payment-status').value = client.paymentStatus || 'pending';
-            document.getElementById('payment-date').value = client.lastPaidDate || '';
+            
+            // Set payment date to current due date by default
+            const defaultPaymentDate = currentDueDate ? currentDueDate.toISOString().split('T')[0] : 
+                (client.lastPaidDate || new Date().toISOString().split('T')[0]);
+            document.getElementById('payment-date').value = defaultPaymentDate;
+            
             document.getElementById('billing-cycle').value = client.billingCycle || 'monthly';
             
+            // Update modal with due date information
+            updatePaymentModalInfo(currentDueDate, nextDueDate);
+            
             document.getElementById('payment-modal').style.display = 'block';
+        }
+
+        // Update payment modal with due date information
+        function updatePaymentModalInfo(currentDueDate, nextDueDate) {
+            const modalContent = document.querySelector('#payment-modal .modal-content');
+            
+            // Remove existing info if present
+            const existingInfo = modalContent.querySelector('.payment-modal-info');
+            if (existingInfo) {
+                existingInfo.remove();
+            }
+            
+            // Add due date information
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'payment-modal-info';
+            infoDiv.innerHTML = `
+                <div class="modal-info-grid">
+                    <div class="info-item">
+                        <label>Current Due Date:</label>
+                        <span class="info-value">${currentDueDate ? currentDueDate.toLocaleDateString('en-US', {
+                            year: 'numeric', month: 'short', day: 'numeric'
+                        }) : 'N/A'}</span>
+                    </div>
+                    <div class="info-item">
+                        <label>Next Due Date:</label>
+                        <span class="info-value next-due">${nextDueDate ? nextDueDate.toLocaleDateString('en-US', {
+                            year: 'numeric', month: 'short', day: 'numeric'
+                        }) : 'N/A'}</span>
+                    </div>
+                </div>
+            `;
+            
+            // Insert after the client name paragraph
+            const clientNameP = modalContent.querySelector('p');
+            clientNameP.parentNode.insertBefore(infoDiv, clientNameP.nextSibling);
         }
 
         // Close payment modal
@@ -2215,6 +2386,7 @@
                 paymentStatus: paymentStatus,
                 lastPaidDate: paymentStatus === 'paid' && paymentDate ? paymentDate : client.lastPaidDate,
                 billingCycle: billingCycle,
+                reminderMessageSent: paymentStatus === 'paid' ? false : client.reminderMessageSent, // Reset if paid
                 updatedAt: new Date().toISOString()
             };
             
@@ -2222,7 +2394,55 @@
             clientsRef.child(currentPaymentClientId).set(updatedClient);
             
             closePaymentModal();
-            alert('Payment information updated successfully!');
+            showSuccessMessage('Payment information updated successfully!');
+            
+            // Update UI immediately
+            updatePaymentCardsImmediate();
+        }
+
+        // Update payment cards immediately (without waiting for Firebase)
+        function updatePaymentCardsImmediate() {
+            // Add smooth animation class
+            const container = document.getElementById('payment-cards-grid');
+            container.classList.add('updating');
+            
+            setTimeout(() => {
+                updatePaymentCards();
+                updatePaymentStats();
+                updatePaymentAlerts();
+                container.classList.remove('updating');
+            }, 100);
+        }
+
+        // Show success message
+        function showSuccessMessage(message) {
+            // Remove existing success message if present
+            const existingMessage = document.querySelector('.success-message');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
+            
+            // Create success message
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.innerHTML = `
+                <div class="success-content">
+                    <span class="success-icon">✅</span>
+                    <span class="success-text">${message}</span>
+                </div>
+            `;
+            
+            // Add to top of payment content
+            const paymentContent = document.getElementById('payments-content');
+            paymentContent.insertBefore(successDiv, paymentContent.firstChild);
+            
+            // Auto-remove after 3 seconds
+            setTimeout(() => {
+                if (successDiv.parentNode) {
+                    successDiv.classList.add('fade-out');
+                    setTimeout(() => successDiv.remove(), 300);
+                }
+            }, 3000);
         }
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date().toISOString().split('T')[0];
