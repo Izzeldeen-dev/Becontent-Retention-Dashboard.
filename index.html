@@ -1770,110 +1770,6 @@
                 </table>
             </div>
         </div>
-        </div>
-
-        <!-- Payment Management Content -->
-        <div id="payments-content" class="tab-content">
-            <div class="payment-header">
-                <h1>💰 Payment Management</h1>
-                <p>Track client payments and billing cycles</p>
-            </div>
-
-            <!-- Payment Stats -->
-            <div class="payment-stats-grid">
-                <div class="payment-stat-card">
-                    <div class="stat-icon green">💰</div>
-                    <div class="stat-info">
-                        <h3>Total Active Subscriptions</h3>
-                        <p id="total-subscriptions">0</p>
-                    </div>
-                </div>
-                <div class="payment-stat-card">
-                    <div class="stat-icon blue">✅</div>
-                    <div class="stat-info">
-                        <h3>Paid This Month</h3>
-                        <p id="paid-this-month" style="color: #16a34a;">0</p>
-                    </div>
-                </div>
-                <div class="payment-stat-card">
-                    <div class="stat-icon yellow">⏳</div>
-                    <div class="stat-info">
-                        <h3>Pending Payments</h3>
-                        <p id="pending-payments" style="color: #d97706;">0</p>
-                    </div>
-                </div>
-                <div class="payment-stat-card">
-                    <div class="stat-icon red">❌</div>
-                    <div class="stat-info">
-                        <h3>Overdue Payments</h3>
-                        <p id="overdue-payments" style="color: #dc2626;">0</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Payment Alerts -->
-            <div class="payment-alerts-section" id="payment-alerts-section">
-                <div class="payment-alerts-header">
-                    <span style="font-size: 24px;">🚨</span>
-                    <h2>Payment Alerts (<span id="payment-alert-count">0</span>)</h2>
-                </div>
-                <div class="payment-alerts-grid" id="payment-alerts-container">
-                    <!-- Payment alerts will be inserted here -->
-                </div>
-            </div>
-
-            <!-- Payment Cards -->
-            <div class="payment-cards-section">
-                <div class="payment-section-header">
-                    <h2>Client Payment Status</h2>
-                    <div class="payment-filters">
-                        <label>Filter:</label>
-                        <select id="payment-status-filter" onchange="updatePaymentCards()">
-                            <option value="all">All Clients</option>
-                            <option value="paid">Paid</option>
-                            <option value="pending">Pending</option>
-                            <option value="overdue">Overdue</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="payment-cards-grid" id="payment-cards-grid">
-                    <!-- Payment cards will be inserted here -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Payment Modal -->
-    <div id="payment-modal" class="modal">
-        <div class="modal-content">
-            <h3>💰 Update Payment</h3>
-            <p>Update payment information for <strong id="payment-client-name"></strong></p>
-            <div class="form-group" style="margin-bottom: 20px;">
-                <label>Payment Status:</label>
-                <select id="payment-status" style="width: 100%;">
-                    <option value="pending">Pending</option>
-                    <option value="paid">Paid</option>
-                    <option value="overdue">Overdue</option>
-                </select>
-            </div>
-            <div class="form-group" style="margin-bottom: 20px;">
-                <label>Payment Date (if paid):</label>
-                <input type="date" id="payment-date" style="width: 100%;">
-            </div>
-            <div class="form-group" style="margin-bottom: 20px;">
-                <label>Billing Cycle:</label>
-                <select id="billing-cycle" style="width: 100%;">
-                    <option value="monthly">Monthly</option>
-                    <option value="quarterly">Quarterly (3 months)</option>
-                    <option value="semi-annual">Semi-Annual (6 months)</option>
-                    <option value="annual">Annual (12 months)</option>
-                </select>
-            </div>
-            <div class="modal-buttons">
-                <button class="btn btn-secondary" onclick="closePaymentModal()">Cancel</button>
-                <button class="btn btn-success" onclick="updatePayment()">Update Payment</button>
-            </div>
-        </div>
     </div>
 
     <script>
@@ -1906,216 +1802,15 @@
         // Local clients array
         let clients = [];
         let dismissedAlerts = new Set();
-        let dismissedPaymentAlerts = new Set();
         let currentEditingClientId = null;
         let currentOffboardingClientId = null;
-        let currentPaymentClientId = null;
 
-        // Tab switching functionality
-        function switchTab(tabName) {
-            // Remove active class from all tabs and content
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
-            // Add active class to selected tab and content
-            document.getElementById(tabName + '-tab').classList.add('active');
-            document.getElementById(tabName + '-content').classList.add('active');
-            
-            // Update content based on tab
-            if (tabName === 'payments') {
-                updatePaymentDashboard();
-            }
-        }
-
-        // Calculate billing cycle months
-        function getBillingCycleMonths(cycle) {
-            switch(cycle) {
-                case 'monthly': return 1;
-                case 'quarterly': return 3;
-                case 'semi-annual': return 6;
-                case 'annual': return 12;
-                default: return 1;
-            }
-        }
-
-        // Calculate next due date based on join date and billing cycle
-        function calculateNextDueDate(joinDate, billingCycle = 'monthly', lastPaidDate = null) {
-            if (!joinDate) return null;
-            
-            const join = new Date(joinDate);
-            const cycleMonths = getBillingCycleMonths(billingCycle);
-            const today = new Date();
-            
-            // Start from last paid date if available, otherwise from join date
-            let baseDate = lastPaidDate ? new Date(lastPaidDate) : new Date(join);
-            
-            // Find the next due date
-            let nextDue = new Date(baseDate);
-            nextDue.setMonth(nextDue.getMonth() + cycleMonths);
-            
-            // If the next due date is in the past, keep adding cycles until we get a future date
-            while (nextDue <= today) {
-                nextDue.setMonth(nextDue.getMonth() + cycleMonths);
-            }
-            
-            return nextDue;
-        }
-
-        // Calculate payment status
-        function calculatePaymentStatus(client) {
-            if (client.isOffboarded) return 'inactive';
-            
-            const today = new Date();
-            const nextDue = calculateNextDueDate(
-                client.joinDate, 
-                client.billingCycle || 'monthly', 
-                client.lastPaidDate
-            );
-            
-            if (!nextDue) return 'unknown';
-            
-            // Check if payment is marked as paid for current period
-            if (client.paymentStatus === 'paid' && client.lastPaidDate) {
-                const lastPaid = new Date(client.lastPaidDate);
-                const cycleMonths = getBillingCycleMonths(client.billingCycle || 'monthly');
-                const nextDueFromLastPaid = new Date(lastPaid);
-                nextDueFromLastPaid.setMonth(nextDueFromLastPaid.getMonth() + cycleMonths);
-                
-                if (today < nextDueFromLastPaid) {
-                    return 'paid';
-                }
-            }
-            
-            // Check if overdue (due date has passed)
-            if (today > nextDue) {
-                return 'overdue';
-            }
-            
-            // Check if due within next 7 days
-            const daysUntilDue = Math.ceil((nextDue - today) / (1000 * 60 * 60 * 24));
-            if (daysUntilDue <= 7) {
-                return 'due-soon';
-            }
-            
-            return 'pending';
-        }
-
-        // Update payment dashboard
-        function updatePaymentDashboard() {
-            updatePaymentStats();
-            updatePaymentAlerts();
-            updatePaymentCards();
-        }
-
-        // Update payment statistics
-        function updatePaymentStats() {
-            const activeClients = clients.filter(c => !c.isOffboarded);
-            let paidCount = 0;
-            let pendingCount = 0;
-            let overdueCount = 0;
-            
-            activeClients.forEach(client => {
-                const status = calculatePaymentStatus(client);
-                if (status === 'paid') paidCount++;
-                else if (status === 'overdue') overdueCount++;
-                else if (status === 'pending' || status === 'due-soon') pendingCount++;
-            });
-            
-            document.getElementById('total-subscriptions').textContent = activeClients.length;
-            document.getElementById('paid-this-month').textContent = paidCount;
-            document.getElementById('pending-payments').textContent = pendingCount;
-            document.getElementById('overdue-payments').textContent = overdueCount;
-        }
-
-        // Update payment alerts
-        function updatePaymentAlerts() {
-            const alertsContainer = document.getElementById('payment-alerts-container');
-            const alertsSection = document.getElementById('payment-alerts-section');
-            alertsContainer.innerHTML = '';
-            let alertCount = 0;
-            
-            const activeClients = clients.filter(c => !c.isOffboarded);
-            
-            activeClients.forEach(client => {
-                const status = calculatePaymentStatus(client);
-                const nextDue = calculateNextDueDate(
-                    client.joinDate, 
-                    client.billingCycle || 'monthly', 
-                    client.lastPaidDate
-                );
-                
-                // Overdue payment alerts
-                if (status === 'overdue' && !dismissedPaymentAlerts.has(`overdue-${client.id}`)) {
-                    const daysOverdue = Math.ceil((new Date() - nextDue) / (1000 * 60 * 60 * 24));
-                    const alertDiv = document.createElement('div');
-                    alertDiv.className = 'alert-item critical';
-                    alertDiv.innerHTML = `
-                        <div class="alert-content">
-                            <h4>${client.name}</h4>
-                            <p>Payment overdue by ${daysOverdue} days</p>
-                        </div>
-                        <button class="dismiss-btn" onclick="dismissPaymentAlert('overdue-${client.id}', this)">✕</button>`;
-                    alertsContainer.appendChild(alertDiv);
-                    alertCount++;
-                }
-                
-                // Due soon alerts
-                if (status === 'due-soon' && !dismissedPaymentAlerts.has(`due-soon-${client.id}`)) {
-                    const daysUntilDue = Math.ceil((nextDue - new Date()) / (1000 * 60 * 60 * 24));
-                    const alertDiv = document.createElement('div');
-                    alertDiv.className = 'alert-item warning';
-                    alertDiv.innerHTML = `
-                        <div class="alert-content">
-                            <h4>${client.name}</h4>
-                            <p>Payment due in ${daysUntilDue} days</p>
-                        </div>
-                        <button class="dismiss-btn" onclick="dismissPaymentAlert('due-soon-${client.id}', this)">✕</button>`;
-                    alertsContainer.appendChild(alertDiv);
-                    alertCount++;
-                }
-            });
-            
-            document.getElementById('payment-alert-count').textContent = alertCount;
-            alertsSection.style.display = alertCount > 0 ? 'block' : 'none';
-        }
-
-        // Dismiss payment alert
-        function dismissPaymentAlert(alertId, button) {
-            dismissedPaymentAlerts.add(alertId);
-            button.parentElement.remove();
-            const alertCount = document.querySelectorAll('#payment-alerts-container .alert-item').length;
-            document.getElementById('payment-alert-count').textContent = alertCount;
-            
-            if (alertCount === 0) {
-                document.getElementById('payment-alerts-section').style.display = 'none';
-            }
-        }
-
-        // Update payment cards
-        function updatePaymentCards() {
-            const container = document.getElementById('payment-cards-grid');
-            const filter = document.getElementById('payment-status-filter').value;
-            container.innerHTML = '';
-            
-            let filteredClients = clients.filter(c => !c.isOffboarded);
-            
-            // Apply status filter
-            if (filter !== 'all') {
-                filteredClients = filteredClients.filter(client => {
-                    const status = calculatePaymentStatus(client);
-                    if (filter === 'paid') return status === 'paid';
-                    if (filter === 'pending') return status === 'pending' || status === 'due-soon';
-                    if (filter === 'overdue') return status === 'overdue';
-                    return true;
-                });
-            }
-            
-            if (filteredClients.length === 0) {
-                container.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #6b7280;">No clients match the selected filter.</div>';
-                return;
-            }
-            
-            filteredClients.forEach(client => {
+        // Set default join date to today when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('join-date').value = today;
+            document.getElementById('offboard-date').value = today;
+        });ients.forEach(client => {
                 const status = calculatePaymentStatus(client);
                 const nextDue = calculateNextDueDate(
                     client.joinDate, 
@@ -3566,9 +3261,6 @@
                 surveyFilled: surveyFilled,
                 notes: notes,
                 isOffboarded: false,
-                billingCycle: 'monthly',
-                paymentStatus: 'pending',
-                lastPaidDate: null,
                 timeline: [
                     { 
                         date: joinDate, 
@@ -3625,12 +3317,8 @@
         // Close modal when clicking outside
         window.onclick = function(event) {
             const offboardModal = document.getElementById('offboard-modal');
-            const paymentModal = document.getElementById('payment-modal');
             if (event.target === offboardModal) {
                 closeOffboardModal();
-            }
-            if (event.target === paymentModal) {
-                closePaymentModal();
             }
         }
 
@@ -3666,10 +3354,6 @@
                         surveyFilled: true,
                         notes: "Very engaged client, always provides valuable feedback. CEO is particularly interested in new features.",
                         isOffboarded: false,
-                        billingCycle: 'monthly',
-                        paymentStatus: 'paid',
-                        lastPaidDate: '2024-12-01',
-                        reminderMessageSent: true,
                         timeline: [
                             { date: "2023-01-15", event: "Client Onboarded", score: 7.5, type: "milestone" },
                             { date: "2023-03-20", event: "First Health Check", score: 8.0, type: "assessment" },
@@ -3692,10 +3376,6 @@
                         surveyFilled: true,
                         notes: "Growing startup, sometimes struggles with scheduling. Team is very technical but needs more guidance on implementation.",
                         isOffboarded: false,
-                        billingCycle: 'quarterly',
-                        paymentStatus: 'pending',
-                        lastPaidDate: '2024-09-01',
-                        reminderMessageSent: true,
                         timeline: [
                             { date: "2023-06-01", event: "Client Onboarded", score: 8.2, type: "milestone" },
                             { date: "2023-08-15", event: "First Health Check", score: 7.8, type: "assessment" },
