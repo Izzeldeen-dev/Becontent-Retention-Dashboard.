@@ -985,7 +985,6 @@
             margin-top: 4px;
         }
 
-        /* Modal styles for offboard confirmation */
         .modal {
             display: none;
             position: fixed;
@@ -1024,16 +1023,14 @@
     </style>
 </head>
 <body>
-    <!-- Sync Indicator -->
     <div class="sync-indicator">
         <div class="sync-dot" id="sync-dot"></div>
         <span id="sync-status">Connected</span>
     </div>
 
-    <!-- Offboard Modal -->
     <div id="offboard-modal" class="modal">
         <div class="modal-content">
-            <h3>🏃‍♂️ Offboard Client</h3>
+            <h3>Offboard Client</h3>
             <p>Are you sure you want to offboard <strong id="offboard-client-name"></strong>? This will mark them as inactive but preserve all their data.</p>
             <div class="form-group" style="margin-bottom: 20px;">
                 <label>Offboard Date:</label>
@@ -1047,13 +1044,11 @@
     </div>
 
     <div class="container">
-        <!-- Header -->
         <div class="header">
             <h1>Client Retention Dashboard</h1>
             <p>Monitor client health scores and retention metrics</p>
         </div>
 
-        <!-- Summary Stats -->
         <div class="stats-grid">
             <div class="stat-card">
                 <div class="stat-icon blue">👥</div>
@@ -1092,7 +1087,6 @@
             </div>
         </div>
 
-        <!-- Alerts Section -->
         <div class="alerts-section" id="alerts-section">
             <div class="alerts-header">
                 <span style="font-size: 24px;">🔔</span>
@@ -1100,14 +1094,12 @@
                 <span class="alert-urgent" id="urgent-badge" style="display: none;">0 Urgent</span>
             </div>
             <div class="alerts-grid" id="alerts-container">
-                <!-- Alerts will be inserted here -->
             </div>
         </div>
 
-        <!-- Time Frame Analysis -->
         <div class="time-filter-section">
             <div class="time-filter-header">
-                <h3>📅 Time Analysis</h3>
+                <h3>Time Analysis</h3>
                 <p>Analyze client retention across different time periods</p>
             </div>
             <div class="time-filter-controls">
@@ -1132,32 +1124,26 @@
                 </div>
             </div>
             <div class="time-insights" id="time-insights">
-                <!-- Insights will be populated here -->
             </div>
         </div>
 
-        <!-- Charts Section -->
         <div class="charts-section">
             <div class="chart-card">
                 <h3>Health Score Overview</h3>
                 <div class="chart-container" id="score-chart">
-                    <!-- Chart will be generated here -->
                 </div>
             </div>
             <div class="chart-card">
                 <h3>Client Distribution</h3>
                 <div class="chart-container" id="distribution-chart">
-                    <!-- Chart will be generated here -->
                 </div>
             </div>
         </div>
 
-        <!-- Add Client Button -->
         <button class="btn" onclick="toggleForm()">
             ➕ Add Client
         </button>
 
-        <!-- Add Client Form -->
         <div class="form-section hidden" id="client-form">
             <h3 style="margin-bottom: 16px;" id="form-title">Add New Client</h3>
             <div class="form-grid">
@@ -1203,6 +1189,13 @@
                         <option value="false">No</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label>Payment Status</label>
+                    <select id="payment-status">
+                        <option value="true">On Time</option>
+                        <option value="false">Late</option>
+                    </select>
+                </div>
                 <div class="form-group full-width">
                     <label>Notes</label>
                     <textarea id="notes" placeholder="Enter any notes about this client"></textarea>
@@ -1214,18 +1207,15 @@
             </div>
         </div>
 
-        <!-- Account Manager Performance Section -->
         <div class="account-manager-section">
             <div class="section-header">
-                <h2>👥 Account Manager Performance</h2>
+                <h2>Account Manager Performance</h2>
                 <p>Track performance metrics and client health scores by account manager</p>
             </div>
             <div class="manager-cards-grid" id="manager-cards-grid">
-                <!-- Manager cards will be inserted here -->
             </div>
         </div>
 
-        <!-- Client Table -->
         <div class="table-section">
             <div class="table-header">
                 <h2>Client Health Scores</h2>
@@ -1238,7 +1228,6 @@
                     </select>
                     <select id="manager-filter" onchange="updateTable()" style="margin-left: 10px;">
                         <option value="all">All Managers</option>
-                        <!-- Manager options will be populated dynamically -->
                     </select>
                 </div>
             </div>
@@ -1251,6 +1240,7 @@
                             <th>Account Manager</th>
                             <th>NPS</th>
                             <th>Engagement</th>
+                            <th>Payment</th>
                             <th>Health Score</th>
                             <th>Status</th>
                             <th>Details</th>
@@ -1259,7 +1249,6 @@
                         </tr>
                     </thead>
                     <tbody id="client-table">
-                        <!-- Clients will be inserted here -->
                     </tbody>
                 </table>
             </div>
@@ -1267,9 +1256,6 @@
     </div>
 
     <script>
-        // ============================================
-        // FIREBASE CONFIGURATION
-        // ============================================
         const firebaseConfig = {
             apiKey: "AIzaSyDNMzO17wu4NOaR2TjT419f0IzB-pWzU5M",
             authDomain: "becontent-33415.firebaseapp.com",
@@ -1281,7 +1267,6 @@
             measurementId: "G-Z23YF3S7VQ"
         };
 
-        // Initialize Firebase
         let database;
         let clientsRef;
         
@@ -1293,40 +1278,33 @@
             console.error('Firebase initialization error:', error);
         }
 
-        // Local clients array
         let clients = [];
         let dismissedAlerts = new Set();
         let currentEditingClientId = null;
         let currentOffboardingClientId = null;
 
-        // Set default join date to today when page loads
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('join-date').value = today;
             document.getElementById('offboard-date').value = today;
         });
 
-        // Calculate which month the client is in - FIXED VERSION
         function calculateClientMonth(joinDate, offboardDate = null) {
             if (!joinDate) return 0;
             
             const join = new Date(joinDate);
             const endDate = offboardDate ? new Date(offboardDate) : new Date();
             
-            // Calculate the difference in months
             let months = (endDate.getFullYear() - join.getFullYear()) * 12;
             months += endDate.getMonth() - join.getMonth();
             
-            // If we haven't reached the anniversary day yet, subtract one month
             if (endDate.getDate() < join.getDate()) {
                 months--;
             }
             
-            // Add 1 to get which month they're currently in (not how many have passed)
             return Math.max(1, months + 1);
         }
 
-        // Calculate engagement score
         function calculateEngagementScore(client) {
             const sessionScore = client.sessionShowUp >= 90 ? 10 : client.sessionShowUp >= 60 ? 7.5 : 3;
             const responseScore = client.messageResponseTime <= 2 ? 10 : client.messageResponseTime <= 3 ? 7.5 : 3;
@@ -1337,14 +1315,18 @@
             return (sessionScore * 0.4) + (responseScore * 0.1) + (scheduleScore * 0.05) + (participationScore * 0.35) + (surveyScore * 0.1);
         }
 
-        // Calculate health score
+        function calculatePaymentScore(client) {
+            return client.paymentOnTime ? 10 : 0;
+        }
+
         function calculateHealthScore(client) {
             const npsScore = client.nps;
             const engagementScore = calculateEngagementScore(client);
-            return (npsScore * 0.6) + (engagementScore * 0.4);
+            const paymentScore = calculatePaymentScore(client);
+            
+            return (npsScore * 0.55) + (engagementScore * 0.30) + (paymentScore * 0.15);
         }
 
-        // Get health category
         function getHealthCategory(score, isOffboarded = false) {
             if (isOffboarded) return { color: 'offboarded', label: 'Offboarded' };
             if (score >= 8) return { color: 'healthy', label: 'Healthy' };
@@ -1352,7 +1334,6 @@
             return { color: 'critical', label: 'Critical' };
         }
 
-        // Offboard modal functions
         function openOffboardModal(clientId) {
             const client = clients.find(c => c.id === clientId);
             if (!client) return;
@@ -1379,7 +1360,6 @@
             const client = clients.find(c => c.id === currentOffboardingClientId);
             if (!client) return;
 
-            // Add offboard information
             const updatedClient = {
                 ...client,
                 isOffboarded: true,
@@ -1387,7 +1367,6 @@
                 updatedAt: new Date().toISOString()
             };
 
-            // Add timeline entry
             if (!updatedClient.timeline) {
                 updatedClient.timeline = [];
             }
@@ -1399,14 +1378,12 @@
                 type: "offboard"
             });
 
-            // Update in Firebase
             clientsRef.child(currentOffboardingClientId).set(updatedClient);
 
             closeOffboardModal();
             alert('Client offboarded successfully!');
         }
 
-        // Reactivate client
         function reactivateClient(clientId) {
             if (!confirm('Are you sure you want to reactivate this client?')) return;
 
@@ -1420,10 +1397,8 @@
                 updatedAt: new Date().toISOString()
             };
 
-            // Remove offboard date but keep it in timeline
             delete updatedClient.offboardDate;
 
-            // Add timeline entry
             if (!updatedClient.timeline) {
                 updatedClient.timeline = [];
             }
@@ -1435,25 +1410,21 @@
                 type: "reactivate"
             });
 
-            // Update in Firebase
             clientsRef.child(clientId).set(updatedClient);
 
             alert('Client reactivated successfully!');
         }
 
-        // UPDATED RETENTION CALCULATION FUNCTIONS - Modified to show "Retention in Months"
         function calculateTimeInsights(period) {
             let totalMonths = 0;
             const healthChanges = [];
             
-            // Calculate retention in months for ALL clients (including offboarded)
             clients.forEach(client => {
                 if (client.joinDate) {
                     const joinDate = new Date(client.joinDate);
                     const endDate = client.isOffboarded && client.offboardDate ? 
                         new Date(client.offboardDate) : new Date();
                     
-                    // Calculate months between join date and end date (offboard or current)
                     const monthsDiff = (endDate - joinDate) / (1000 * 60 * 60 * 24 * 30);
                     totalMonths += monthsDiff;
                 }
@@ -1465,17 +1436,14 @@
                 }
             });
             
-            // Calculate actual retention rate
             const retentionData = calculateActualRetention(period);
             
-            // Calculate average retention in months across ALL clients
             const avgRetentionMonths = clients.length > 0 ? (totalMonths / clients.length).toFixed(1) : 0;
             const avgHealthChange = healthChanges.length > 0 ? 
                 healthChanges.reduce((a, b) => a + b, 0) / healthChanges.length : 0;
             const trendDirection = avgHealthChange > 0 ? 'Improving' : avgHealthChange < 0 ? 'Declining' : 'Stable';
             
             return {
-                // CHANGED: avgRelationship becomes avgRetentionMonths
                 avgRetentionMonths: `<strong>${avgRetentionMonths} months</strong>`,
                 retentionRate: `<strong>${retentionData.rate}%</strong> (${retentionData.details})`,
                 healthTrend: `<strong>${trendDirection} (${avgHealthChange > 0 ? '+' : ''}${avgHealthChange.toFixed(1)})</strong>`,
@@ -1483,12 +1451,10 @@
             };
         }
 
-        // New function to calculate actual retention rate
         function calculateActualRetention(period) {
             const currentDate = new Date();
             let periodStart;
             
-            // Determine the period start date
             switch(period) {
                 case '1month':
                     periodStart = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, currentDate.getDate());
@@ -1505,23 +1471,21 @@
                 case 'current':
                     periodStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
                     break;
-                default: // lifetime
+                default:
                     return calculateLifetimeRetention();
             }
             
-            // Find clients who were active at the start of the period
             const clientsAtPeriodStart = clients.filter(client => {
                 const joinDate = new Date(client.joinDate);
                 return joinDate <= periodStart;
             });
             
-            // Count how many are still active (not offboarded) or were offboarded after the period
             const retainedClients = clientsAtPeriodStart.filter(client => {
-                if (!client.isOffboarded) return true; // Still active
+                if (!client.isOffboarded) return true;
                 
                 if (client.offboardDate) {
                     const offboardDate = new Date(client.offboardDate);
-                    return offboardDate > currentDate; // Offboarded after our analysis period
+                    return offboardDate > currentDate;
                 }
                 
                 return false;
@@ -1539,7 +1503,6 @@
             };
         }
 
-        // Calculate lifetime retention rate
         function calculateLifetimeRetention() {
             const totalClients = clients.length;
             const activeClients = clients.filter(c => !c.isOffboarded).length;
@@ -1556,7 +1519,6 @@
             };
         }
 
-        // Time frame analysis functions
         function updateTimeFrame() {
             const period = document.getElementById('time-period').value;
             const viewType = document.getElementById('view-type').value;
@@ -1565,32 +1527,30 @@
             updateTimelineView(viewType, period);
         }
 
-        // UPDATED FUNCTION: Display "Retention in Months" instead of "Average Relationship"
         function updateTimeInsights(period) {
             const insights = calculateTimeInsights(period);
             const insightsContainer = document.getElementById('time-insights');
             
             insightsContainer.innerHTML = `
                 <div class="insight-card">
-                    <h4>📈 Retention in Months</h4>
+                    <h4>Retention in Months</h4>
                     <p>${insights.avgRetentionMonths}</p>
                 </div>
                 <div class="insight-card">
-                    <h4>🎯 Client Retention</h4>
+                    <h4>Client Retention</h4>
                     <p>${insights.retentionRate}</p>
                 </div>
                 <div class="insight-card">
-                    <h4>⚡ Health Trend</h4>
+                    <h4>Health Trend</h4>
                     <p>${insights.healthTrend}</p>
                 </div>
                 <div class="insight-card">
-                    <h4>🚨 Risk Analysis</h4>
+                    <h4>Risk Analysis</h4>
                     <p>${insights.riskAnalysis}</p>
                 </div>`;
         }
 
         function updateTimelineView(viewType, period) {
-            // Remove existing timeline
             const existingTimeline = document.querySelector('.timeline-view');
             if (existingTimeline) {
                 existingTimeline.remove();
@@ -1607,7 +1567,7 @@
             
             timelineDiv.innerHTML = `
                 <div class="timeline-header">
-                    <h3>${viewType === 'timeline' ? '📋 Client Timeline' : '📈 Trend Analysis'}</h3>
+                    <h3>${viewType === 'timeline' ? 'Client Timeline' : 'Trend Analysis'}</h3>
                     <span style="font-size: 0.875rem; color: #6b7280;">Showing ${period === 'lifetime' ? 'all historical data' : period}</span>
                 </div>
                 <div class="timeline-container">
@@ -1637,10 +1597,8 @@
                 }
             });
             
-            // Sort by date
             allEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
             
-            // Filter by period if not lifetime
             if (period !== 'lifetime') {
                 const cutoffDate = new Date();
                 switch(period) {
@@ -1682,7 +1640,6 @@
             return timelineHTML || '<p style="color: #6b7280; padding: 20px;">No timeline data available for this period</p>';
         }
 
-        // Update dashboard
         function updateDashboard() {
             const stats = { 
                 total: clients.length, 
@@ -1717,7 +1674,6 @@
             updateTimeFrame();
         }
 
-        // Calculate manager performance metrics
         function calculateManagerMetrics(managerName) {
             const managerClients = clients.filter(client => {
                 if (managerName === 'Unassigned') {
@@ -1739,7 +1695,6 @@
             const activeClients = managerClients.filter(c => !c.isOffboarded);
             const offboardedClients = managerClients.filter(c => c.isOffboarded);
             
-            // Calculate average health score for active clients only
             let totalHealthScore = 0;
             let healthyCount = 0;
             let atRiskCount = 0;
@@ -1772,7 +1727,6 @@
             };
         }
 
-        // Get unique account managers
         function getUniqueManagers() {
             const managers = new Set();
             let hasUnassigned = false;
@@ -1793,7 +1747,6 @@
             return managersList;
         }
 
-        // Update manager performance section
         function updateManagerPerformance() {
             const container = document.getElementById('manager-cards-grid');
             const managers = getUniqueManagers();
@@ -1809,7 +1762,6 @@
                 const metrics = calculateManagerMetrics(manager);
                 const isUnassigned = manager === 'Unassigned';
                 
-                // Get manager initials for avatar
                 const initials = isUnassigned ? '?' : manager.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
                 
                 const card = document.createElement('div');
@@ -1864,16 +1816,13 @@
                 container.appendChild(card);
             });
 
-            // Update manager filter dropdown
             updateManagerFilter();
         }
 
-        // Update manager filter dropdown
         function updateManagerFilter() {
             const managerFilter = document.getElementById('manager-filter');
             const managers = getUniqueManagers();
             
-            // Clear existing options except "All Managers"
             managerFilter.innerHTML = '<option value="all">All Managers</option>';
             
             managers.forEach(manager => {
@@ -1884,7 +1833,6 @@
             });
         }
 
-        // Filter by manager
         function filterByManager(managerName) {
             const managerFilter = document.getElementById('manager-filter');
             managerFilter.value = managerName;
@@ -1892,7 +1840,6 @@
             scrollToTable();
         }
 
-        // Scroll to table
         function scrollToTable() {
             document.querySelector('.table-section').scrollIntoView({ 
                 behavior: 'smooth',
@@ -1900,7 +1847,6 @@
             });
         }
 
-        // Update alerts
         function updateAlerts() {
             const alertsContainer = document.getElementById('alerts-container');
             const alertsSection = document.getElementById('alerts-section');
@@ -1908,14 +1854,12 @@
             let alertCount = 0;
             let urgentCount = 0;
 
-            // Only show alerts for active clients
             const activeClients = clients.filter(c => !c.isOffboarded);
 
             activeClients.forEach(client => {
                 const score = calculateHealthScore(client);
                 const category = getHealthCategory(score);
 
-                // Critical alerts
                 if (category.color === 'critical' && !dismissedAlerts.has(`critical-${client.id}`)) {
                     const alertDiv = document.createElement('div');
                     alertDiv.className = 'alert-item critical';
@@ -1930,7 +1874,6 @@
                     urgentCount++;
                 }
 
-                // At-risk alerts
                 if (category.color === 'at-risk' && !dismissedAlerts.has(`at-risk-${client.id}`)) {
                     const alertDiv = document.createElement('div');
                     alertDiv.className = 'alert-item warning';
@@ -1944,7 +1887,6 @@
                     alertCount++;
                 }
 
-                // Low attendance alerts
                 if (client.sessionShowUp < 60 && !dismissedAlerts.has(`attendance-${client.id}`)) {
                     const alertDiv = document.createElement('div');
                     alertDiv.className = 'alert-item info';
@@ -1958,7 +1900,6 @@
                     alertCount++;
                 }
 
-                // Slow response alerts
                 if (client.messageResponseTime > 3 && !dismissedAlerts.has(`response-${client.id}`)) {
                     const alertDiv = document.createElement('div');
                     alertDiv.className = 'alert-item info';
@@ -1971,17 +1912,29 @@
                     alertsContainer.appendChild(alertDiv);
                     alertCount++;
                 }
+
+                if (!client.paymentOnTime && !dismissedAlerts.has(`payment-${client.id}`)) {
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert-item critical';
+                    alertDiv.innerHTML = `
+                        <div class="alert-content">
+                            <h4>${client.name}</h4>
+                            <p>Payment is LATE - This impacts health score by 15%</p>
+                        </div>
+                        <button class="dismiss-btn" onclick="dismissAlert('payment-${client.id}', this)">✕</button>`;
+                    alertsContainer.appendChild(alertDiv);
+                    alertCount++;
+                    urgentCount++;
+                }
             });
 
             document.getElementById('alert-count').textContent = alertCount;
             document.getElementById('urgent-badge').style.display = urgentCount > 0 ? 'inline' : 'none';
             document.getElementById('urgent-badge').textContent = urgentCount + ' Urgent';
             
-            // Hide alerts section if no alerts
             alertsSection.style.display = alertCount > 0 ? 'block' : 'none';
         }
 
-        // Dismiss alert
         function dismissAlert(alertId, button) {
             dismissedAlerts.add(alertId);
             button.parentElement.remove();
@@ -1992,19 +1945,16 @@
             document.getElementById('urgent-badge').style.display = urgentAlerts > 0 ? 'inline' : 'none';
             document.getElementById('urgent-badge').textContent = urgentAlerts + ' Urgent';
             
-            // Hide alerts section if no alerts left
             if (alertCount === 0) {
                 document.getElementById('alerts-section').style.display = 'none';
             }
         }
 
-        // Update charts
         function updateCharts() {
             updateScoreChart();
             updateDistributionChart();
         }
 
-        // Update score chart
         function updateScoreChart() {
             const chartContainer = document.getElementById('score-chart');
             chartContainer.innerHTML = '';
@@ -2043,7 +1993,6 @@
             chartContainer.appendChild(barChart);
         }
 
-        // Update distribution chart
         function updateDistributionChart() {
             const chartContainer = document.getElementById('distribution-chart');
             chartContainer.innerHTML = '';
@@ -2073,7 +2022,6 @@
             const criticalPercent = (stats.critical / total * 100);
             const offboardedPercent = (stats.offboarded / total * 100);
 
-            // Create pie chart visualization
             const pieContainer = document.createElement('div');
             pieContainer.style.width = '200px';
             pieContainer.style.height = '200px';
@@ -2087,7 +2035,6 @@
 
             chartContainer.appendChild(pieContainer);
 
-            // Add legend
             const legend = document.createElement('div');
             legend.className = 'chart-legend';
             
@@ -2119,7 +2066,6 @@
             chartContainer.appendChild(legend);
         }
 
-        // Update table
         function updateTable() {
             const tableBody = document.getElementById('client-table');
             const statusFilter = document.getElementById('client-status-filter').value;
@@ -2128,14 +2074,12 @@
 
             let filteredClients = clients;
             
-            // Apply status filter
             if (statusFilter === 'active') {
                 filteredClients = filteredClients.filter(c => !c.isOffboarded);
             } else if (statusFilter === 'offboarded') {
                 filteredClients = filteredClients.filter(c => c.isOffboarded);
             }
             
-            // Apply manager filter
             if (managerFilter !== 'all') {
                 if (managerFilter === 'Unassigned') {
                     filteredClients = filteredClients.filter(c => !c.accountManager || c.accountManager.trim() === '');
@@ -2150,14 +2094,12 @@
                 const category = getHealthCategory(healthScore, client.isOffboarded);
                 const clientMonth = calculateClientMonth(client.joinDate, client.offboardDate);
 
-                // Format join date
                 const joinDate = client.joinDate ? new Date(client.joinDate).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'short',
                     day: 'numeric'
                 }) : 'N/A';
 
-                // Format offboard date if exists
                 const offboardDate = client.offboardDate ? new Date(client.offboardDate).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'short',
@@ -2184,6 +2126,11 @@
                     </td>
                     <td>${client.nps.toFixed(1)}</td>
                     <td>${engagementScore.toFixed(1)}</td>
+                    <td>
+                        <span class="status-badge ${client.paymentOnTime ? 'healthy' : 'critical'}">
+                            ${client.paymentOnTime ? '✓ On Time' : '⚠ Late'}
+                        </span>
+                    </td>
                     <td><strong>${client.isOffboarded ? 'N/A' : healthScore.toFixed(1)}</strong></td>
                     <td><span class="status-badge ${category.color}">${category.label}</span></td>
                     <td class="details">
@@ -2212,32 +2159,27 @@
             });
         }
 
-        // Helper function to get ordinal numbers (1st, 2nd, 3rd, etc.)
         function getOrdinal(num) {
             const suffixes = ["th", "st", "nd", "rd"];
             const v = num % 100;
             return num + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
         }
 
-        // Toggle form
         function toggleForm() {
             const form = document.getElementById('client-form');
             form.classList.toggle('hidden');
             
-            // Reset form if opening fresh
             if (!form.classList.contains('hidden')) {
                 resetForm();
             }
         }
 
-        // Reset form to add mode
         function resetForm() {
             currentEditingClientId = null;
             document.getElementById('form-title').textContent = 'Add New Client';
             document.getElementById('submit-btn').textContent = 'Add Client';
             document.getElementById('submit-btn').onclick = addClient;
             
-            // Clear form
             document.getElementById('name').value = '';
             document.getElementById('join-date').value = new Date().toISOString().split('T')[0];
             document.getElementById('account-manager').value = '';
@@ -2247,17 +2189,16 @@
             document.getElementById('participation').value = '7';
             document.getElementById('scheduled').value = 'true';
             document.getElementById('survey').value = 'true';
+            document.getElementById('payment-status').value = 'true';
             document.getElementById('notes').value = '';
         }
 
-        // Cancel form
         function cancelForm() {
             const form = document.getElementById('client-form');
             form.classList.add('hidden');
             resetForm();
         }
 
-        // Edit client
         function editClient(id) {
             const client = clients.find(c => c.id === id);
             if (!client) {
@@ -2272,12 +2213,10 @@
 
             currentEditingClientId = id;
             
-            // Update form title and button
             document.getElementById('form-title').textContent = 'Edit Client';
             document.getElementById('submit-btn').textContent = 'Update Client';
             document.getElementById('submit-btn').onclick = updateClient;
             
-            // Populate form with client data
             document.getElementById('name').value = client.name;
             document.getElementById('join-date').value = client.joinDate || '';
             document.getElementById('account-manager').value = client.accountManager || '';
@@ -2287,13 +2226,12 @@
             document.getElementById('participation').value = client.participationLevel;
             document.getElementById('scheduled').value = client.sessionScheduled.toString();
             document.getElementById('survey').value = client.surveyFilled.toString();
+            document.getElementById('payment-status').value = (client.paymentOnTime !== undefined ? client.paymentOnTime : true).toString();
             document.getElementById('notes').value = client.notes || '';
             
-            // Show form
             document.getElementById('client-form').classList.remove('hidden');
         }
 
-        // Update client
         function updateClient() {
             if (!currentEditingClientId) {
                 alert('No client selected for editing');
@@ -2309,6 +2247,7 @@
             const participationLevel = parseFloat(document.getElementById('participation').value) || 7;
             const sessionScheduled = document.getElementById('scheduled').value === 'true';
             const surveyFilled = document.getElementById('survey').value === 'true';
+            const paymentOnTime = document.getElementById('payment-status').value === 'true';
             const notes = document.getElementById('notes').value.trim();
 
             if (!name) {
@@ -2321,25 +2260,23 @@
                 return;
             }
 
-            // Find the existing client
             const existingClient = clients.find(c => c.id === currentEditingClientId);
             if (!existingClient) {
                 alert('Client not found');
                 return;
             }
 
-            // Calculate new health score
             const tempClient = {
                 nps: nps,
                 sessionShowUp: sessionShowUp,
                 messageResponseTime: messageResponseTime,
                 sessionScheduled: sessionScheduled,
                 participationLevel: participationLevel,
-                surveyFilled: surveyFilled
+                surveyFilled: surveyFilled,
+                paymentOnTime: paymentOnTime
             };
             const newScore = calculateHealthScore(tempClient);
 
-            // Create updated client object
             const updatedClient = {
                 ...existingClient,
                 name: name,
@@ -2351,11 +2288,11 @@
                 sessionScheduled: sessionScheduled,
                 participationLevel: participationLevel,
                 surveyFilled: surveyFilled,
+                paymentOnTime: paymentOnTime,
                 notes: notes,
                 updatedAt: new Date().toISOString()
             };
 
-            // Add timeline entry for the update
             if (!updatedClient.timeline) {
                 updatedClient.timeline = [];
             }
@@ -2367,16 +2304,13 @@
                 type: "update"
             });
 
-            // Update in Firebase
             clientsRef.child(currentEditingClientId).set(updatedClient);
 
-            // Close form and reset
             cancelForm();
             
             alert('Client updated successfully!');
         }
 
-        // Add client
         function addClient() {
             const name = document.getElementById('name').value.trim();
             const joinDate = document.getElementById('join-date').value;
@@ -2387,6 +2321,7 @@
             const participationLevel = parseFloat(document.getElementById('participation').value) || 7;
             const sessionScheduled = document.getElementById('scheduled').value === 'true';
             const surveyFilled = document.getElementById('survey').value === 'true';
+            const paymentOnTime = document.getElementById('payment-status').value === 'true';
             const notes = document.getElementById('notes').value.trim();
 
             if (!name) {
@@ -2405,7 +2340,8 @@
                 messageResponseTime: messageResponseTime,
                 sessionScheduled: sessionScheduled,
                 participationLevel: participationLevel,
-                surveyFilled: surveyFilled
+                surveyFilled: surveyFilled,
+                paymentOnTime: paymentOnTime
             };
             const currentScore = calculateHealthScore(tempClient);
 
@@ -2420,6 +2356,7 @@
                 sessionScheduled: sessionScheduled,
                 participationLevel: participationLevel,
                 surveyFilled: surveyFilled,
+                paymentOnTime: paymentOnTime,
                 notes: notes,
                 isOffboarded: false,
                 timeline: [
@@ -2433,10 +2370,8 @@
                 createdAt: new Date().toISOString()
             };
 
-            // Save to Firebase
             clientsRef.child(newClient.id).set(newClient);
 
-            // Clear form
             document.getElementById('name').value = '';
             document.getElementById('join-date').value = new Date().toISOString().split('T')[0];
             document.getElementById('account-manager').value = '';
@@ -2446,12 +2381,12 @@
             document.getElementById('participation').value = '7';
             document.getElementById('scheduled').value = 'true';
             document.getElementById('survey').value = 'true';
+            document.getElementById('payment-status').value = 'true';
             document.getElementById('notes').value = '';
 
             toggleForm();
         }
 
-        // Delete client
         function deleteClient(id) {
             const client = clients.find(c => c.id === id);
             const clientName = client ? client.name : 'this client';
@@ -2461,7 +2396,6 @@
             }
         }
 
-        // Update sync indicator
         function updateSyncIndicator(isConnected) {
             const dot = document.getElementById('sync-dot');
             const status = document.getElementById('sync-status');
@@ -2475,7 +2409,6 @@
             }
         }
 
-        // Close modal when clicking outside
         window.onclick = function(event) {
             const modal = document.getElementById('offboard-modal');
             if (event.target === modal) {
@@ -2483,7 +2416,6 @@
             }
         }
 
-        // Initialize Firebase listeners
         clientsRef.on('value', (snapshot) => {
             clients = [];
             snapshot.forEach((childSnapshot) => {
@@ -2492,13 +2424,11 @@
             updateDashboard();
         });
 
-        // Monitor connection state
         const connectedRef = database.ref('.info/connected');
         connectedRef.on('value', (snapshot) => {
             updateSyncIndicator(snapshot.val() === true);
         });
 
-        // Initialize with sample data if database is empty
         clientsRef.once('value', (snapshot) => {
             if (!snapshot.exists()) {
                 const sampleClients = [
@@ -2513,6 +2443,7 @@
                         sessionScheduled: true,
                         participationLevel: 8.5,
                         surveyFilled: true,
+                        paymentOnTime: true,
                         notes: "Very engaged client, always provides valuable feedback. CEO is particularly interested in new features.",
                         isOffboarded: false,
                         timeline: [
@@ -2535,6 +2466,7 @@
                         sessionScheduled: false,
                         participationLevel: 6,
                         surveyFilled: true,
+                        paymentOnTime: true,
                         notes: "Growing startup, sometimes struggles with scheduling. Team is very technical but needs more guidance on implementation.",
                         isOffboarded: false,
                         timeline: [
@@ -2557,10 +2489,11 @@
                         sessionScheduled: false,
                         participationLevel: 3,
                         surveyFilled: false,
-                        notes: "Struggling with adoption. Multiple stakeholders with different priorities. Requires immediate intervention and dedicated support.",
+                        paymentOnTime: false,
+                        notes: "Struggling with adoption. Multiple stakeholders with different priorities. Requires immediate intervention and dedicated support. Payment is consistently late.",
                         isOffboarded: false,
                         timeline: [
-                            { date: "2024-02-10", event: "Client Onboarded", score: 6.8, type: "milestone" },
+                            { date: "2024-02-10", event:"Client Onboarded", score: 6.8, type: "milestone" },
                             { date: "2024-04-15", event: "First Health Check", score: 6.2, type: "assessment" },
                             { date: "2024-07-20", event: "Quarterly Review", score: 5.5, type: "review" },
                             { date: "2024-09-30", event: "Escalation Required", score: 4.8, type: "incident" },
@@ -2578,6 +2511,7 @@
                         sessionScheduled: true,
                         participationLevel: 5,
                         surveyFilled: false,
+                        paymentOnTime: false,
                         notes: "Large enterprise client with complex requirements. Decision-making process was slow. Opted for competitor solution due to pricing concerns.",
                         isOffboarded: true,
                         offboardDate: "2024-11-15",
@@ -2591,7 +2525,6 @@
                     }
                 ];
 
-                // Save sample data to Firebase
                 sampleClients.forEach(client => {
                     clientsRef.child(client.id).set(client);
                 });
