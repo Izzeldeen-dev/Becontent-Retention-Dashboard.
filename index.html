@@ -1071,7 +1071,7 @@
         try {
             firebase.initializeApp(firebaseConfig);
             database = firebase.database();
-            clientsRef = database.ref('clients_becontent');
+            clientsRef = database.ref('clients');
         } catch (error) {
             console.error('Firebase initialization error:', error);
         }
