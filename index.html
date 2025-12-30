@@ -980,12 +980,22 @@
                     <input type="text" id="name" placeholder="Enter client name">
                 </div>
                 <div class="form-group">
-                    <label>Join Date *</label>
-                    <input type="date" id="join-date">
+                    <label>Join Date (Kick-off Date) *</label>
+                    <input type="date" id="join-date" onchange="updateContractEndDate()">
                 </div>
                 <div class="form-group">
-                    <label>Contract End Date</label>
-                    <input type="date" id="contract-end-date">
+                    <label>Billing Cycle *</label>
+                    <select id="billing-cycle" onchange="updateContractEndDate()">
+                        <option value="">Select billing cycle</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="quarterly">Quarterly (3 months)</option>
+                        <option value="semi-annually">Semi-Annually (6 months)</option>
+                        <option value="annually">Annually (12 months)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Contract End Date (Auto-calculated)</label>
+                    <input type="date" id="contract-end-date" readonly style="background-color: #f3f4f6;">
                 </div>
                 <div class="form-group">
                     <label>Account Manager</label>
@@ -1070,6 +1080,7 @@
                     <thead>
                         <tr>
                             <th>Client</th>
+                            <th>Days Active</th>
                             <th>Account Manager</th>
                             <th>Contract End</th>
                             <th>Renewal Status</th>
@@ -1119,6 +1130,54 @@
             document.getElementById('join-date').value = today;
             document.getElementById('offboard-date').value = today;
         });
+
+        function updateContractEndDate() {
+            const joinDate = document.getElementById('join-date').value;
+            const billingCycle = document.getElementById('billing-cycle').value;
+            
+            if (!joinDate || !billingCycle) {
+                document.getElementById('contract-end-date').value = '';
+                return;
+            }
+            
+            const startDate = new Date(joinDate);
+            let endDate = new Date(joinDate);
+            
+            switch(billingCycle) {
+                case 'monthly':
+                    endDate.setMonth(endDate.getMonth() + 1);
+                    break;
+                case 'quarterly':
+                    endDate.setMonth(endDate.getMonth() + 3);
+                    break;
+                case 'semi-annually':
+                    endDate.setMonth(endDate.getMonth() + 6);
+                    break;
+                case 'annually':
+                    endDate.setFullYear(endDate.getFullYear() + 1);
+                    break;
+            }
+            
+            // Subtract 1 day to get the actual end date
+            endDate.setDate(endDate.getDate() - 1);
+            
+            document.getElementById('contract-end-date').value = endDate.toISOString().split('T')[0];
+        }
+
+        function calculateDaysSinceJoin(joinDate, offboardDate = null) {
+            if (!joinDate) return 0;
+            
+            const join = new Date(joinDate);
+            join.setHours(0, 0, 0, 0);
+            
+            const endDate = offboardDate ? new Date(offboardDate) : new Date();
+            endDate.setHours(0, 0, 0, 0);
+            
+            const diffTime = endDate - join;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            return diffDays + 1;
+        }
 
         function calculateHealthScore(client) {
             const npsScore = (client.nps / 10) * 30;
@@ -1360,6 +1419,9 @@
                     year: 'numeric'
                 }) : 'N/A';
 
+                const daysSinceJoin = calculateDaysSinceJoin(client.joinDate, client.offboardDate);
+                const billingCycleDisplay = client.billingCycle ? client.billingCycle.charAt(0).toUpperCase() + client.billingCycle.slice(1).replace('-', ' ') : 'Not set';
+
                 let daysUntilBadge = '';
                 if (daysUntil < 0) {
                     daysUntilBadge = '<span class="days-until critical">EXPIRED</span>';
@@ -1384,6 +1446,7 @@
                             <div class="contract-info">
                                 ${daysUntilBadge}
                                 ${renewalStatusBadge}
+                                <span class="days-counter" style="margin-left: 8px;">${getOrdinal(daysSinceJoin)} Day</span>
                             </div>
                         </div>
                         <div class="renewal-card-actions">
@@ -1398,6 +1461,10 @@
                             <div class="renewal-info-value">${contractEndFormatted}</div>
                         </div>
                         <div class="renewal-info-item">
+                            <div class="renewal-info-label">Billing Cycle</div>
+                            <div class="renewal-info-value">${billingCycleDisplay}</div>
+                        </div>
+                        <div class="renewal-info-item">
                             <div class="renewal-info-label">Account Manager</div>
                             <div class="renewal-info-value">${client.accountManager || 'Not assigned'}</div>
                         </div>
@@ -1409,7 +1476,7 @@
                             </div>
                         </div>
                         <div class="renewal-info-item">
-                            <div class="renewal-info-label">Client Since</div>
+                            <div class="renewal-info-label">Kick-off Date</div>
                             <div class="renewal-info-value">${joinDateFormatted}</div>
                         </div>
                         ${client.contractValue ? `
@@ -1549,6 +1616,13 @@
             filteredClients.forEach(client => {
                 const healthScore = calculateHealthScore(client);
                 const category = getHealthCategory(healthScore, client.isOffboarded);
+                const daysSinceJoin = calculateDaysSinceJoin(client.joinDate, client.offboardDate);
+                
+                const joinDateFormatted = client.joinDate ? new Date(client.joinDate).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                }) : 'N/A';
                 
                 const contractEndDate = client.contractEndDate ? new Date(client.contractEndDate).toLocaleDateString('en-US', {
                     year: 'numeric',
@@ -1565,6 +1639,7 @@
                 }
 
                 const renewalStatusBadge = getRenewalStatusBadge(client.renewalStatus || 'pending');
+                const billingCycleText = client.billingCycle ? ` - ${client.billingCycle.charAt(0).toUpperCase() + client.billingCycle.slice(1)}` : '';
 
                 const row = document.createElement('tr');
                 if (client.isOffboarded) {
@@ -1574,6 +1649,10 @@
                 row.innerHTML = `
                     <td>
                         <strong>${client.name}</strong>
+                        <div class="join-date">Joined: ${joinDateFormatted}${billingCycleText}</div>
+                    </td>
+                    <td>
+                        <span class="days-counter">${getOrdinal(daysSinceJoin)} Day</span>
                     </td>
                     <td>
                         <div class="account-manager">${client.accountManager || 'Not assigned'}</div>
@@ -1599,6 +1678,13 @@
             });
         }
 
+        function getOrdinal(num) {
+            const suffixes = ["th", "st", "nd", "rd"];
+            const v = num % 100;
+            return num + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
+        }
+        }
+
         function toggleForm() {
             const form = document.getElementById('client-form');
             form.classList.toggle('hidden');
@@ -1616,6 +1702,7 @@
             
             document.getElementById('name').value = '';
             document.getElementById('join-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('billing-cycle').value = '';
             document.getElementById('contract-end-date').value = '';
             document.getElementById('account-manager').value = '';
             document.getElementById('nps').value = '7';
@@ -1651,6 +1738,7 @@
             
             document.getElementById('name').value = client.name;
             document.getElementById('join-date').value = client.joinDate || '';
+            document.getElementById('billing-cycle').value = client.billingCycle || '';
             document.getElementById('contract-end-date').value = client.contractEndDate || '';
             document.getElementById('account-manager').value = client.accountManager || '';
             document.getElementById('nps').value = client.nps;
@@ -1675,6 +1763,7 @@
 
             const name = document.getElementById('name').value.trim();
             const joinDate = document.getElementById('join-date').value;
+            const billingCycle = document.getElementById('billing-cycle').value;
             const contractEndDate = document.getElementById('contract-end-date').value;
             const accountManager = document.getElementById('account-manager').value.trim();
             const nps = parseFloat(document.getElementById('nps').value) || 7;
@@ -1708,6 +1797,7 @@
                 ...existingClient,
                 name: name,
                 joinDate: joinDate,
+                billingCycle: billingCycle || null,
                 contractEndDate: contractEndDate || null,
                 accountManager: accountManager,
                 nps: nps,
@@ -1732,6 +1822,7 @@
         function addClient() {
             const name = document.getElementById('name').value.trim();
             const joinDate = document.getElementById('join-date').value;
+            const billingCycle = document.getElementById('billing-cycle').value;
             const contractEndDate = document.getElementById('contract-end-date').value;
             const accountManager = document.getElementById('account-manager').value.trim();
             const nps = parseFloat(document.getElementById('nps').value) || 7;
@@ -1755,10 +1846,16 @@
                 return;
             }
 
+            if (!billingCycle) {
+                alert('Please select a billing cycle');
+                return;
+            }
+
             const newClient = {
                 id: Date.now().toString(),
                 name: name,
                 joinDate: joinDate,
+                billingCycle: billingCycle,
                 contractEndDate: contractEndDate || null,
                 accountManager: accountManager,
                 nps: nps,
