@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeContent Client Retention Dashboard</title>
+    <title>BeContent Client Retention Dashboard - Renewal Pipeline</title>
     
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
@@ -302,6 +302,45 @@
             background-color: #f3f4f6;
             color: #4b5563;
         }
+
+        .renewal-badge {
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .renewal-badge.confirmed {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 2px solid #16a34a;
+        }
+
+        .renewal-badge.discussion {
+            background-color: #dbeafe;
+            color: #1e40af;
+            border: 2px solid #3b82f6;
+        }
+
+        .renewal-badge.at-risk {
+            background-color: #fef3c7;
+            color: #92400e;
+            border: 2px solid #f59e0b;
+        }
+
+        .renewal-badge.churned {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 2px solid #dc2626;
+        }
+
+        .renewal-badge.pending {
+            background-color: #f3f4f6;
+            color: #4b5563;
+            border: 2px solid #9ca3af;
+        }
         
         .month-indicator {
             display: inline-block;
@@ -394,415 +433,6 @@
             align-items: center;
             gap: 4px;
         }
-        
-        .alerts-section {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            margin-bottom: 40px;
-            overflow: hidden;
-        }
-        
-        .alerts-header {
-            padding: 20px;
-            border-bottom: 1px solid #e5e7eb;
-            display: flex;
-            align-items: center;
-        }
-        
-        .alerts-header h2 {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-left: 8px;
-        }
-        
-        .alert-urgent {
-            background-color: #fee2e2;
-            color: #991b1b;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            margin-left: 12px;
-            animation: pulse 2s infinite;
-        }
-        
-        .alerts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 16px;
-            padding: 20px;
-        }
-        
-        .alert-item {
-            padding: 16px;
-            border-radius: 6px;
-            border: 1px solid;
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-        }
-        
-        .alert-item.critical {
-            background-color: #fef2f2;
-            border-color: #fecaca;
-        }
-        
-        .alert-item.warning {
-            background-color: #fffbeb;
-            border-color: #fed7aa;
-        }
-        
-        .alert-item.info {
-            background-color: #eff6ff;
-            border-color: #bfdbfe;
-        }
-        
-        .alert-content {
-            flex: 1;
-        }
-        
-        .alert-content h4 {
-            font-weight: 500;
-            margin-bottom: 4px;
-        }
-        
-        .alert-content p {
-            font-size: 0.875rem;
-            color: #6b7280;
-        }
-        
-        .dismiss-btn {
-            background: none;
-            border: none;
-            color: #9ca3af;
-            cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
-        }
-        
-        .charts-section {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 20px;
-            margin-bottom: 40px;
-        }
-        
-        .chart-card {
-            background: white;
-            padding: 24px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
-        
-        .chart-card h3 {
-            font-size: 1.125rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-        
-        .chart-container {
-            height: 250px;
-            position: relative;
-        }
-        
-        .bar-chart {
-            display: flex;
-            align-items: end;
-            height: 200px;
-            gap: 12px;
-            padding: 20px 0;
-        }
-        
-        .bar {
-            flex: 1;
-            background: linear-gradient(to top, #e5e7eb, #3b82f6);
-            border-radius: 4px 4px 0 0;
-            position: relative;
-            min-height: 20px;
-            display: flex;
-            align-items: end;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 0.75rem;
-            padding-bottom: 8px;
-        }
-        
-        .bar.healthy {
-            background: linear-gradient(to top, #dcfce7, #16a34a);
-        }
-        
-        .bar.at-risk {
-            background: linear-gradient(to top, #fef3c7, #d97706);
-        }
-        
-        .bar.critical {
-            background: linear-gradient(to top, #fee2e2, #dc2626);
-        }
-        
-        .bar.offboarded {
-            background: linear-gradient(to top, #f3f4f6, #6b7280);
-        }
-        
-        .bar-label {
-            position: absolute;
-            bottom: -25px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 0.75rem;
-            color: #6b7280;
-            font-weight: 500;
-            text-align: center;
-            width: 100%;
-        }
-        
-        .pie-chart {
-            width: 200px;
-            height: 200px;
-            margin: 0 auto;
-            position: relative;
-        }
-        
-        .chart-legend {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 0.875rem;
-        }
-        
-        .legend-color {
-            width: 16px;
-            height: 16px;
-            border-radius: 2px;
-        }
-        
-        .legend-color.healthy { background-color: #16a34a; }
-        .legend-color.at-risk { background-color: #d97706; }
-        .legend-color.critical { background-color: #dc2626; }
-        .legend-color.offboarded { background-color: #6b7280; }
-        
-        .account-manager-section {
-            background: white;
-            padding: 24px;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            margin-bottom: 40px;
-        }
-        
-        .section-header {
-            margin-bottom: 24px;
-            border-bottom: 1px solid #e5e7eb;
-            padding-bottom: 16px;
-        }
-        
-        .section-header h2 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #111827;
-            margin-bottom: 4px;
-        }
-        
-        .section-header p {
-            color: #6b7280;
-            font-size: 0.875rem;
-        }
-        
-        .manager-cards-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 20px;
-        }
-        
-        .manager-card {
-            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 20px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .manager-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            border-color: #3b82f6;
-        }
-        
-        .manager-card.no-manager {
-            background: linear-gradient(135deg, #fef7f0 0%, #fef3e2 100%);
-            border-color: #fed7aa;
-        }
-        
-        .manager-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
-        }
-        
-        .manager-card.no-manager::before {
-            background: linear-gradient(90deg, #f59e0b, #d97706);
-        }
-        
-        .manager-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 16px;
-        }
-        
-        .manager-info h3 {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: #111827;
-            margin-bottom: 4px;
-        }
-        
-        .manager-info .client-count {
-            font-size: 0.875rem;
-            color: #6b7280;
-        }
-        
-        .manager-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 1.125rem;
-        }
-        
-        .manager-avatar.no-manager {
-            background: linear-gradient(135deg, #f59e0b, #d97706);
-        }
-        
-        .manager-metrics {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-        
-        .metric-item {
-            text-align: center;
-            padding: 12px;
-            background: white;
-            border-radius: 8px;
-            border: 1px solid #e5e7eb;
-        }
-        
-        .metric-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-        
-        .metric-value.health-score {
-            color: #059669;
-        }
-        
-        .metric-value.retention-rate {
-            color: #3b82f6;
-        }
-        
-        .metric-label {
-            font-size: 0.75rem;
-            color: #6b7280;
-            text-transform: uppercase;
-            font-weight: 500;
-        }
-        
-        .client-distribution {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-        }
-        
-        .distribution-item {
-            flex: 1;
-            text-align: center;
-            padding: 8px 4px;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-        
-        .distribution-item.healthy {
-            background: #dcfce7;
-            color: #166534;
-        }
-        
-        .distribution-item.at-risk {
-            background: #fef3c7;
-            color: #92400e;
-        }
-        
-        .distribution-item.critical {
-            background: #fee2e2;
-            color: #991b1b;
-        }
-        
-        .distribution-item.offboarded {
-            background: #f3f4f6;
-            color: #4b5563;
-        }
-        
-        .manager-actions {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .action-link {
-            flex: 1;
-            padding: 8px 12px;
-            background: #3b82f6;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 500;
-            text-align: center;
-            transition: background-color 0.2s;
-        }
-        
-        .action-link:hover {
-            background: #1d4ed8;
-            color: white;
-        }
-        
-        .action-link.secondary {
-            background: #6b7280;
-        }
-        
-        .action-link.secondary:hover {
-            background: #4b5563;
-        }
-        
-        .no-managers-message {
-            grid-column: 1 / -1;
-            text-align: center;
-            padding: 40px;
-            color: #6b7280;
-            font-size: 0.875rem;
-        }
 
         .hidden {
             display: none;
@@ -827,69 +457,6 @@
             box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
         }
 
-        .meeting-indicator {
-            font-size: 0.75rem;
-            margin-top: 4px;
-            padding: 4px 8px;
-            border-radius: 6px;
-            display: inline-block;
-            font-weight: 500;
-        }
-
-        .meeting-indicator.upcoming {
-            background-color: #fef3c7;
-            color: #92400e;
-        }
-
-        .meeting-indicator.soon {
-            background-color: #fee2e2;
-            color: #991b1b;
-            animation: pulse 2s infinite;
-        }
-
-        .meeting-indicator.today {
-            background-color: #dc2626;
-            color: white;
-            animation: pulse 1s infinite;
-        }
-
-        .meeting-indicator.completed {
-            background-color: #dcfce7;
-            color: #166534;
-            border: 1px solid #16a34a;
-        }
-
-        .btn-complete {
-            background-color: #16a34a;
-            color: white;
-            font-size: 0.75rem;
-            padding: 4px 8px;
-        }
-
-        .btn-complete:hover {
-            background-color: #15803d;
-        }
-
-        .meeting-history {
-            font-size: 0.7rem;
-            color: #6b7280;
-            margin-top: 4px;
-        }
-
-        .meeting-history span {
-            display: inline-block;
-            background: #f3f4f6;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-right: 4px;
-            margin-top: 2px;
-        }
-
-        .meeting-history span.completed {
-            background: #dcfce7;
-            color: #166534;
-        }
-
         .modal {
             display: none;
             position: fixed;
@@ -903,11 +470,13 @@
 
         .modal-content {
             background-color: white;
-            margin: 15% auto;
+            margin: 5% auto;
             padding: 20px;
             border-radius: 8px;
-            width: 400px;
+            width: 500px;
             max-width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
         }
 
         .modal h3 {
@@ -925,6 +494,313 @@
             gap: 10px;
             justify-content: flex-end;
         }
+
+        /* RENEWAL PIPELINE SPECIFIC STYLES */
+        .renewal-pipeline-section {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+            overflow: hidden;
+        }
+
+        .pipeline-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pipeline-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .pipeline-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            background: #e5e7eb;
+        }
+
+        .pipeline-stat {
+            background: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .pipeline-stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .pipeline-stat-value.confirmed { color: #16a34a; }
+        .pipeline-stat-value.discussion { color: #3b82f6; }
+        .pipeline-stat-value.risk { color: #f59e0b; }
+        .pipeline-stat-value.churned { color: #dc2626; }
+
+        .pipeline-stat-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+
+        .pipeline-tabs {
+            display: flex;
+            border-bottom: 2px solid #e5e7eb;
+            background: #f9fafb;
+        }
+
+        .pipeline-tab {
+            flex: 1;
+            padding: 16px 24px;
+            text-align: center;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .pipeline-tab:hover {
+            background: #f3f4f6;
+        }
+
+        .pipeline-tab.active {
+            background: white;
+            border-bottom-color: #667eea;
+            color: #667eea;
+        }
+
+        .pipeline-tab.critical {
+            border-bottom-color: #dc2626;
+            color: #dc2626;
+        }
+
+        .pipeline-tab.urgent {
+            border-bottom-color: #f59e0b;
+            color: #f59e0b;
+        }
+
+        .pipeline-content {
+            padding: 20px;
+        }
+
+        .renewal-card {
+            background: #f9fafb;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 16px;
+            transition: all 0.3s ease;
+        }
+
+        .renewal-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+
+        .renewal-card.critical-renewal {
+            border-left: 4px solid #dc2626;
+            background: #fef2f2;
+        }
+
+        .renewal-card.urgent-renewal {
+            border-left: 4px solid #f59e0b;
+            background: #fffbeb;
+        }
+
+        .renewal-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .renewal-card-title {
+            flex: 1;
+        }
+
+        .renewal-card-title h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 4px;
+        }
+
+        .renewal-card-title .contract-info {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .renewal-card-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .renewal-card-body {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .renewal-info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .renewal-info-label {
+            font-size: 0.75rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+
+        .renewal-info-value {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #111827;
+        }
+
+        .days-until {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .days-until.critical {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .days-until.urgent {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .days-until.normal {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .renewal-notes {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #e5e7eb;
+            font-size: 0.875rem;
+            color: #6b7280;
+            margin-top: 12px;
+        }
+
+        .renewal-notes:empty::before {
+            content: "No renewal notes";
+            font-style: italic;
+            color: #9ca3af;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #111827;
+        }
+
+        .empty-state-description {
+            font-size: 0.875rem;
+        }
+
+        .quick-action-btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .quick-action-btn.confirmed {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .quick-action-btn.confirmed:hover {
+            background: #16a34a;
+            color: white;
+        }
+
+        .quick-action-btn.discussion {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .quick-action-btn.discussion:hover {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .quick-action-btn.at-risk {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .quick-action-btn.at-risk:hover {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .quick-action-btn.churned {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .quick-action-btn.churned:hover {
+            background: #dc2626;
+            color: white;
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 12px;
+            padding: 8px 0;
+            border-left: 2px solid #e5e7eb;
+            padding-left: 16px;
+            margin-left: 8px;
+        }
+
+        .timeline-date {
+            font-size: 0.75rem;
+            color: #6b7280;
+            min-width: 80px;
+        }
+
+        .timeline-event {
+            font-size: 0.875rem;
+            color: #111827;
+        }
     </style>
 </head>
 <body>
@@ -933,10 +809,11 @@
         <span id="sync-status">Connected</span>
     </div>
 
+    <!-- Offboard Modal -->
     <div id="offboard-modal" class="modal">
         <div class="modal-content">
             <h3>Offboard Client</h3>
-            <p>Are you sure you want to offboard <strong id="offboard-client-name"></strong>? This will mark them as inactive but preserve all their data.</p>
+            <p>Are you sure you want to offboard <strong id="offboard-client-name"></strong>?</p>
             <div class="form-group" style="margin-bottom: 20px;">
                 <label>Offboard Date:</label>
                 <input type="date" id="offboard-date" style="width: 100%;">
@@ -948,10 +825,49 @@
         </div>
     </div>
 
+    <!-- Renewal Status Modal -->
+    <div id="renewal-modal" class="modal">
+        <div class="modal-content">
+            <h3>Update Renewal Status</h3>
+            <p>Update renewal information for <strong id="renewal-client-name"></strong></p>
+            
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label>Contract End Date *</label>
+                <input type="date" id="renewal-contract-end" style="width: 100%;">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label>Renewal Status *</label>
+                <select id="renewal-status" style="width: 100%;">
+                    <option value="pending">Pending Review</option>
+                    <option value="confirmed">✅ Confirmed Renewal</option>
+                    <option value="discussion">💬 In Discussion</option>
+                    <option value="at-risk">⚠️ At Risk</option>
+                    <option value="churned">❌ Churned</option>
+                </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 16px;">
+                <label>Contract Value (Optional)</label>
+                <input type="number" id="renewal-contract-value" placeholder="e.g., 5000" style="width: 100%;">
+            </div>
+
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label>Renewal Notes</label>
+                <textarea id="renewal-notes" rows="4" placeholder="Add notes about renewal discussions, concerns, or next steps..." style="width: 100%;"></textarea>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn btn-secondary" onclick="closeRenewalModal()">Cancel</button>
+                <button class="btn btn-success" onclick="saveRenewalStatus()">Save Renewal Info</button>
+            </div>
+        </div>
+    </div>
+
     <div class="container">
         <div class="header">
             <h1>BeContent Client Retention Dashboard</h1>
-            <p>Monitor client health scores and retention metrics</p>
+            <p>Monitor client health scores and renewal pipeline</p>
         </div>
 
         <div class="stats-grid">
@@ -992,25 +908,62 @@
             </div>
         </div>
 
-        <div class="alerts-section" id="alerts-section">
-            <div class="alerts-header">
-                <span style="font-size: 24px;">🔔</span>
-                <h2>Active Alerts (<span id="alert-count">0</span>)</h2>
-                <span class="alert-urgent" id="urgent-badge" style="display: none;">0 Urgent</span>
+        <!-- RENEWAL PIPELINE SECTION -->
+        <div class="renewal-pipeline-section">
+            <div class="pipeline-header">
+                <h2>
+                    <span>🔄</span>
+                    <span>Renewal Pipeline</span>
+                </h2>
+                <button class="btn" onclick="refreshRenewalPipeline()">↻ Refresh</button>
             </div>
-            <div class="alerts-grid" id="alerts-container">
-            </div>
-        </div>
 
-        <div class="charts-section">
-            <div class="chart-card">
-                <h3>Health Score Overview</h3>
-                <div class="chart-container" id="score-chart">
+            <div class="pipeline-stats">
+                <div class="pipeline-stat">
+                    <div class="pipeline-stat-value confirmed" id="renewal-confirmed-count">0</div>
+                    <div class="pipeline-stat-label">Confirmed</div>
+                </div>
+                <div class="pipeline-stat">
+                    <div class="pipeline-stat-value discussion" id="renewal-discussion-count">0</div>
+                    <div class="pipeline-stat-label">In Discussion</div>
+                </div>
+                <div class="pipeline-stat">
+                    <div class="pipeline-stat-value risk" id="renewal-risk-count">0</div>
+                    <div class="pipeline-stat-label">At Risk</div>
+                </div>
+                <div class="pipeline-stat">
+                    <div class="pipeline-stat-value churned" id="renewal-churned-count">0</div>
+                    <div class="pipeline-stat-label">Churned</div>
                 </div>
             </div>
-            <div class="chart-card">
-                <h3>Client Distribution</h3>
-                <div class="chart-container" id="distribution-chart">
+
+            <div class="pipeline-tabs">
+                <div class="pipeline-tab active critical" data-tab="15-days" onclick="switchRenewalTab('15-days')">
+                    🔴 Next 15 Days (<span id="count-15-days">0</span>)
+                </div>
+                <div class="pipeline-tab urgent" data-tab="30-days" onclick="switchRenewalTab('30-days')">
+                    🟠 Next 30 Days (<span id="count-30-days">0</span>)
+                </div>
+                <div class="pipeline-tab" data-tab="60-days" onclick="switchRenewalTab('60-days')">
+                    🟡 Next 60 Days (<span id="count-60-days">0</span>)
+                </div>
+                <div class="pipeline-tab" data-tab="all" onclick="switchRenewalTab('all')">
+                    📋 All Renewals (<span id="count-all">0</span>)
+                </div>
+            </div>
+
+            <div class="pipeline-content">
+                <div id="renewal-15-days" class="renewal-tab-content">
+                    <!-- Cards will be dynamically inserted here -->
+                </div>
+                <div id="renewal-30-days" class="renewal-tab-content hidden">
+                    <!-- Cards will be dynamically inserted here -->
+                </div>
+                <div id="renewal-60-days" class="renewal-tab-content hidden">
+                    <!-- Cards will be dynamically inserted here -->
+                </div>
+                <div id="renewal-all" class="renewal-tab-content hidden">
+                    <!-- Cards will be dynamically inserted here -->
                 </div>
             </div>
         </div>
@@ -1018,28 +971,6 @@
         <button class="btn" onclick="toggleForm()">
             ➕ Add Client
         </button>
-
-        <div class="table-section" style="margin-bottom: 40px;">
-            <div class="table-header">
-                <h2>📅 Upcoming Performance Meetings</h2>
-            </div>
-            <div style="overflow-x: auto;">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Client</th>
-                            <th>Account Manager</th>
-                            <th>Meeting Day</th>
-                            <th>Meeting Date</th>
-                            <th>Days Until</th>
-                            <th>Status & Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="meetings-table">
-                    </tbody>
-                </table>
-            </div>
-        </div>
 
         <div class="form-section hidden" id="client-form">
             <h3 style="margin-bottom: 16px;" id="form-title">Add New Client</h3>
@@ -1050,7 +981,11 @@
                 </div>
                 <div class="form-group">
                     <label>Join Date *</label>
-                    <input type="date" id="join-date" value="">
+                    <input type="date" id="join-date">
+                </div>
+                <div class="form-group">
+                    <label>Contract End Date</label>
+                    <input type="date" id="contract-end-date">
                 </div>
                 <div class="form-group">
                     <label>Account Manager</label>
@@ -1089,23 +1024,32 @@
                         <option value="false">Negative</option>
                     </select>
                 </div>
+                <div class="form-group">
+                    <label>Renewal Status</label>
+                    <select id="form-renewal-status">
+                        <option value="pending">Pending Review</option>
+                        <option value="confirmed">Confirmed Renewal</option>
+                        <option value="discussion">In Discussion</option>
+                        <option value="at-risk">At Risk</option>
+                        <option value="churned">Churned</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Contract Value</label>
+                    <input type="number" id="contract-value" placeholder="e.g., 5000">
+                </div>
                 <div class="form-group full-width">
                     <label>Notes</label>
                     <textarea id="notes" placeholder="Enter any notes about this client"></textarea>
+                </div>
+                <div class="form-group full-width">
+                    <label>Renewal Notes</label>
+                    <textarea id="form-renewal-notes" placeholder="Notes about renewal discussions"></textarea>
                 </div>
             </div>
             <div>
                 <button class="btn btn-success" id="submit-btn" onclick="addClient()">Add Client</button>
                 <button class="btn btn-secondary" onclick="cancelForm()">Cancel</button>
-            </div>
-        </div>
-
-        <div class="account-manager-section">
-            <div class="section-header">
-                <h2>Account Manager Performance</h2>
-                <p>Track performance metrics and client health scores by account manager</p>
-            </div>
-            <div class="manager-cards-grid" id="manager-cards-grid">
             </div>
         </div>
 
@@ -1119,9 +1063,6 @@
                         <option value="active">Active Only</option>
                         <option value="offboarded">Offboarded Only</option>
                     </select>
-                    <select id="manager-filter" onchange="updateTable()" style="margin-left: 10px;">
-                        <option value="all">All Managers</option>
-                    </select>
                 </div>
             </div>
             <div style="overflow-x: auto;">
@@ -1129,17 +1070,11 @@
                     <thead>
                         <tr>
                             <th>Client</th>
-                            <th>Month</th>
                             <th>Account Manager</th>
-                            <th>NPS (30%)</th>
-                            <th>Show Up (10%)</th>
-                            <th>Participation (10%)</th>
-                            <th>Payment (10%)</th>
-                            <th>Viral Video (20%)</th>
-                            <th>Early Signs (20%)</th>
+                            <th>Contract End</th>
+                            <th>Renewal Status</th>
                             <th>Health Score</th>
                             <th>Status</th>
-                            <th>Notes</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
@@ -1174,9 +1109,10 @@
         }
 
         let clients = [];
-        let dismissedAlerts = new Set();
         let currentEditingClientId = null;
         let currentOffboardingClientId = null;
+        let currentRenewalClientId = null;
+        let currentRenewalTab = '15-days';
 
         document.addEventListener('DOMContentLoaded', function() {
             const today = new Date().toISOString().split('T')[0];
@@ -1184,145 +1120,15 @@
             document.getElementById('offboard-date').value = today;
         });
 
-        function calculateClientMonth(joinDate, offboardDate = null) {
-            if (!joinDate) return 0;
-            
-            const join = new Date(joinDate);
-            const endDate = offboardDate ? new Date(offboardDate) : new Date();
-            
-            let months = (endDate.getFullYear() - join.getFullYear()) * 12;
-            months += endDate.getMonth() - join.getMonth();
-            
-            if (endDate.getDate() < join.getDate()) {
-                months--;
-            }
-            
-            return Math.max(1, months + 1);
-        }
-
-        function calculateDaysSinceJoin(joinDate, offboardDate = null) {
-            if (!joinDate) return 0;
-            
-            const join = new Date(joinDate);
-            join.setHours(0, 0, 0, 0);
-            
-            const endDate = offboardDate ? new Date(offboardDate) : new Date();
-            endDate.setHours(0, 0, 0, 0);
-            
-            const diffTime = endDate - join;
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-            
-            return diffDays + 1;
-        }
-
-        function calculateNextMeeting(joinDate, offboardDate = null, completedMeetings = []) {
-            if (!joinDate) return null;
-            
-            const daysSinceJoin = calculateDaysSinceJoin(joinDate, offboardDate);
-            
-            // Meeting schedule: day 48, 78, 108, 138, etc. (every 30 days starting from day 48)
-            let nextMeetingDay = 48;
-            
-            // Find the next meeting that hasn't been completed
-            while (nextMeetingDay <= daysSinceJoin || completedMeetings.includes(nextMeetingDay)) {
-                if (!completedMeetings.includes(nextMeetingDay) && nextMeetingDay > daysSinceJoin) {
-                    break;
-                }
-                nextMeetingDay += 30;
-            }
-            
-            // If client is offboarded, don't show future meetings
-            if (offboardDate) {
-                return null;
-            }
-            
-            // Calculate the actual date
-            const join = new Date(joinDate);
-            const meetingDate = new Date(join);
-            meetingDate.setDate(join.getDate() + nextMeetingDay - 1);
-            
-            const daysUntil = nextMeetingDay - daysSinceJoin;
-            
-            return {
-                day: nextMeetingDay,
-                date: meetingDate,
-                daysUntil: daysUntil
-            };
-        }
-
-        function markMeetingComplete(clientId, meetingDay) {
-            const client = clients.find(c => c.id === clientId);
-            if (!client) return;
-
-            // Initialize completedMeetings array if it doesn't exist
-            if (!client.completedMeetings) {
-                client.completedMeetings = [];
-            }
-
-            // Add this meeting day to completed meetings if not already there
-            if (!client.completedMeetings.includes(meetingDay)) {
-                client.completedMeetings.push(meetingDay);
-                
-                // Sort the array
-                client.completedMeetings.sort((a, b) => a - b);
-
-                // Update timeline
-                if (!client.timeline) {
-                    client.timeline = [];
-                }
-                
-                client.timeline.push({
-                    date: new Date().toISOString().split('T')[0],
-                    event: `Performance Meeting Completed (Day ${meetingDay})`,
-                    score: calculateHealthScore(client),
-                    type: "meeting"
-                });
-
-                client.updatedAt = new Date().toISOString();
-
-                // Save to Firebase
-                clientsRef.child(clientId).set(client);
-
-                alert(`Meeting for Day ${meetingDay} marked as complete!`);
-            } else {
-                alert('This meeting is already marked as complete.');
-            }
-        }
-
-        function getCompletedMeetingsList(completedMeetings) {
-            if (!completedMeetings || completedMeetings.length === 0) {
-                return '';
-            }
-            
-            return completedMeetings.map(day => `Day ${day} ✓`).join(', ');
-        }
-
-        // NEW HEALTH SCORE CALCULATION
-        // NPS: 30%, Show Up Rate: 10%, Participation Level: 10%, Payment Status: 10%, 
-        // Video Went Viral: 20%, Early Signs Question: 20%
         function calculateHealthScore(client) {
-            // NPS Score (0-10) - 30% weight
             const npsScore = (client.nps / 10) * 30;
-            
-            // Show Up Rate (0-100%) - 10% weight
             const showUpScore = (client.sessionShowUp / 100) * 10;
-            
-            // Participation Level (0-10) - 10% weight
             const participationScore = (client.participationLevel / 10) * 10;
-            
-            // Payment Status - 10% weight
             const paymentScore = client.paymentOnTime ? 10 : 0;
-            
-            // Video Went Viral - 20% weight
             const viralScore = client.videoWentViral ? 20 : 0;
-            
-            // Early Signs Question - 20% weight
             const earlySignsScore = client.earlySigns ? 20 : 0;
-            
-            // Total score out of 100, then convert to 0-10 scale
             const totalScore = npsScore + showUpScore + participationScore + paymentScore + viralScore + earlySignsScore;
-            
-            return totalScore / 10; // Convert from 0-100 to 0-10
+            return totalScore / 10;
         }
 
         function getHealthCategory(score, isOffboarded = false) {
@@ -1330,6 +1136,331 @@
             if (score >= 8) return { color: 'healthy', label: 'Healthy' };
             if (score >= 7) return { color: 'at-risk', label: 'At Risk' };
             return { color: 'critical', label: 'Critical' };
+        }
+
+        function calculateDaysUntilRenewal(contractEndDate) {
+            if (!contractEndDate) return null;
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const endDate = new Date(contractEndDate);
+            endDate.setHours(0, 0, 0, 0);
+            
+            const diffTime = endDate - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            return diffDays;
+        }
+
+        function getRenewalUrgency(daysUntil) {
+            if (daysUntil === null || daysUntil < 0) return 'expired';
+            if (daysUntil <= 15) return 'critical';
+            if (daysUntil <= 30) return 'urgent';
+            if (daysUntil <= 60) return 'normal';
+            return 'future';
+        }
+
+        function openRenewalModal(clientId) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+
+            currentRenewalClientId = clientId;
+            document.getElementById('renewal-client-name').textContent = client.name;
+            document.getElementById('renewal-contract-end').value = client.contractEndDate || '';
+            document.getElementById('renewal-status').value = client.renewalStatus || 'pending';
+            document.getElementById('renewal-contract-value').value = client.contractValue || '';
+            document.getElementById('renewal-notes').value = client.renewalNotes || '';
+            
+            document.getElementById('renewal-modal').style.display = 'block';
+        }
+
+        function closeRenewalModal() {
+            document.getElementById('renewal-modal').style.display = 'none';
+            currentRenewalClientId = null;
+        }
+
+        function saveRenewalStatus() {
+            if (!currentRenewalClientId) return;
+
+            const contractEndDate = document.getElementById('renewal-contract-end').value;
+            const renewalStatus = document.getElementById('renewal-status').value;
+            const contractValue = document.getElementById('renewal-contract-value').value;
+            const renewalNotes = document.getElementById('renewal-notes').value.trim();
+
+            if (!contractEndDate) {
+                alert('Please select a contract end date');
+                return;
+            }
+
+            const client = clients.find(c => c.id === currentRenewalClientId);
+            if (!client) return;
+
+            const updatedClient = {
+                ...client,
+                contractEndDate: contractEndDate,
+                renewalStatus: renewalStatus,
+                contractValue: contractValue ? parseFloat(contractValue) : null,
+                renewalNotes: renewalNotes,
+                updatedAt: new Date().toISOString()
+            };
+
+            if (!updatedClient.renewalTimeline) {
+                updatedClient.renewalTimeline = [];
+            }
+            
+            updatedClient.renewalTimeline.push({
+                date: new Date().toISOString().split('T')[0],
+                event: `Renewal status updated to: ${renewalStatus}`,
+                notes: renewalNotes
+            });
+
+            clientsRef.child(currentRenewalClientId).set(updatedClient);
+
+            closeRenewalModal();
+            alert('Renewal information updated successfully!');
+        }
+
+        function quickUpdateRenewalStatus(clientId, newStatus) {
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+
+            const updatedClient = {
+                ...client,
+                renewalStatus: newStatus,
+                updatedAt: new Date().toISOString()
+            };
+
+            if (!updatedClient.renewalTimeline) {
+                updatedClient.renewalTimeline = [];
+            }
+            
+            updatedClient.renewalTimeline.push({
+                date: new Date().toISOString().split('T')[0],
+                event: `Quick status update: ${newStatus}`
+            });
+
+            clientsRef.child(clientId).set(updatedClient);
+        }
+
+        function switchRenewalTab(tabName) {
+            currentRenewalTab = tabName;
+            
+            // Update tab styles
+            document.querySelectorAll('.pipeline-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            
+            // Show/hide content
+            document.querySelectorAll('.renewal-tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            document.getElementById(`renewal-${tabName}`).classList.remove('hidden');
+        }
+
+        function updateRenewalPipeline() {
+            const activeClients = clients.filter(c => !c.isOffboarded && c.contractEndDate);
+            
+            // Calculate stats
+            let confirmedCount = 0;
+            let discussionCount = 0;
+            let riskCount = 0;
+            let churnedCount = 0;
+            
+            let count15Days = 0;
+            let count30Days = 0;
+            let count60Days = 0;
+            let countAll = activeClients.length;
+
+            activeClients.forEach(client => {
+                const status = client.renewalStatus || 'pending';
+                if (status === 'confirmed') confirmedCount++;
+                else if (status === 'discussion') discussionCount++;
+                else if (status === 'at-risk') riskCount++;
+                else if (status === 'churned') churnedCount++;
+
+                const daysUntil = calculateDaysUntilRenewal(client.contractEndDate);
+                if (daysUntil !== null && daysUntil >= 0) {
+                    if (daysUntil <= 15) count15Days++;
+                    if (daysUntil <= 30) count30Days++;
+                    if (daysUntil <= 60) count60Days++;
+                }
+            });
+
+            // Update stat counts
+            document.getElementById('renewal-confirmed-count').textContent = confirmedCount;
+            document.getElementById('renewal-discussion-count').textContent = discussionCount;
+            document.getElementById('renewal-risk-count').textContent = riskCount;
+            document.getElementById('renewal-churned-count').textContent = churnedCount;
+
+            document.getElementById('count-15-days').textContent = count15Days;
+            document.getElementById('count-30-days').textContent = count30Days;
+            document.getElementById('count-60-days').textContent = count60Days;
+            document.getElementById('count-all').textContent = countAll;
+
+            // Update each tab content
+            updateRenewalTabContent('15-days', 15);
+            updateRenewalTabContent('30-days', 30);
+            updateRenewalTabContent('60-days', 60);
+            updateRenewalTabContent('all', null);
+        }
+
+        function updateRenewalTabContent(tabName, daysThreshold) {
+            const container = document.getElementById(`renewal-${tabName}`);
+            container.innerHTML = '';
+
+            let filteredClients = clients.filter(c => !c.isOffboarded && c.contractEndDate);
+            
+            if (daysThreshold !== null) {
+                filteredClients = filteredClients.filter(c => {
+                    const daysUntil = calculateDaysUntilRenewal(c.contractEndDate);
+                    return daysUntil !== null && daysUntil >= 0 && daysUntil <= daysThreshold;
+                });
+            }
+
+            // Sort by days until renewal (closest first)
+            filteredClients.sort((a, b) => {
+                const daysA = calculateDaysUntilRenewal(a.contractEndDate);
+                const daysB = calculateDaysUntilRenewal(b.contractEndDate);
+                return daysA - daysB;
+            });
+
+            if (filteredClients.length === 0) {
+                const emptyState = document.createElement('div');
+                emptyState.className = 'empty-state';
+                emptyState.innerHTML = `
+                    <div class="empty-state-icon">📋</div>
+                    <div class="empty-state-title">No renewals in this timeframe</div>
+                    <div class="empty-state-description">All contracts are either confirmed or outside this window</div>
+                `;
+                container.appendChild(emptyState);
+                return;
+            }
+
+            filteredClients.forEach(client => {
+                const daysUntil = calculateDaysUntilRenewal(client.contractEndDate);
+                const urgency = getRenewalUrgency(daysUntil);
+                const healthScore = calculateHealthScore(client);
+                const healthCategory = getHealthCategory(healthScore);
+                const renewalStatus = client.renewalStatus || 'pending';
+
+                const card = document.createElement('div');
+                card.className = `renewal-card ${urgency === 'critical' ? 'critical-renewal' : urgency === 'urgent' ? 'urgent-renewal' : ''}`;
+                
+                const contractEndFormatted = new Date(client.contractEndDate).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+
+                const joinDateFormatted = client.joinDate ? new Date(client.joinDate).toLocaleDateString('en-US', {
+                    month: 'short',
+                    day: 'numeric',
+                    year: 'numeric'
+                }) : 'N/A';
+
+                let daysUntilBadge = '';
+                if (daysUntil < 0) {
+                    daysUntilBadge = '<span class="days-until critical">EXPIRED</span>';
+                } else if (daysUntil === 0) {
+                    daysUntilBadge = '<span class="days-until critical">EXPIRES TODAY</span>';
+                } else if (daysUntil === 1) {
+                    daysUntilBadge = '<span class="days-until critical">1 DAY</span>';
+                } else if (daysUntil <= 15) {
+                    daysUntilBadge = `<span class="days-until critical">${daysUntil} DAYS</span>`;
+                } else if (daysUntil <= 30) {
+                    daysUntilBadge = `<span class="days-until urgent">${daysUntil} DAYS</span>`;
+                } else {
+                    daysUntilBadge = `<span class="days-until normal">${daysUntil} DAYS</span>`;
+                }
+
+                const renewalStatusBadge = getRenewalStatusBadge(renewalStatus);
+
+                card.innerHTML = `
+                    <div class="renewal-card-header">
+                        <div class="renewal-card-title">
+                            <h3>${client.name}</h3>
+                            <div class="contract-info">
+                                ${daysUntilBadge}
+                                ${renewalStatusBadge}
+                            </div>
+                        </div>
+                        <div class="renewal-card-actions">
+                            <button class="action-btn edit-btn" onclick="openRenewalModal('${client.id}')" title="Update Renewal">📝</button>
+                            <button class="action-btn edit-btn" onclick="editClient('${client.id}')" title="Edit Client">✏️</button>
+                        </div>
+                    </div>
+
+                    <div class="renewal-card-body">
+                        <div class="renewal-info-item">
+                            <div class="renewal-info-label">Contract End Date</div>
+                            <div class="renewal-info-value">${contractEndFormatted}</div>
+                        </div>
+                        <div class="renewal-info-item">
+                            <div class="renewal-info-label">Account Manager</div>
+                            <div class="renewal-info-value">${client.accountManager || 'Not assigned'}</div>
+                        </div>
+                        <div class="renewal-info-item">
+                            <div class="renewal-info-label">Health Score</div>
+                            <div class="renewal-info-value">
+                                ${healthScore.toFixed(1)} 
+                                <span class="status-badge ${healthCategory.color}" style="margin-left: 8px;">${healthCategory.label}</span>
+                            </div>
+                        </div>
+                        <div class="renewal-info-item">
+                            <div class="renewal-info-label">Client Since</div>
+                            <div class="renewal-info-value">${joinDateFormatted}</div>
+                        </div>
+                        ${client.contractValue ? `
+                        <div class="renewal-info-item">
+                            <div class="renewal-info-label">Contract Value</div>
+                            <div class="renewal-info-value">$${client.contractValue.toLocaleString()}</div>
+                        </div>
+                        ` : ''}
+                    </div>
+
+                    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                        <button class="quick-action-btn confirmed" onclick="quickUpdateRenewalStatus('${client.id}', 'confirmed')">✅ Confirm</button>
+                        <button class="quick-action-btn discussion" onclick="quickUpdateRenewalStatus('${client.id}', 'discussion')">💬 Discussion</button>
+                        <button class="quick-action-btn at-risk" onclick="quickUpdateRenewalStatus('${client.id}', 'at-risk')">⚠️ At Risk</button>
+                        <button class="quick-action-btn churned" onclick="quickUpdateRenewalStatus('${client.id}', 'churned')">❌ Churned</button>
+                    </div>
+
+                    ${client.renewalNotes ? `
+                    <div class="renewal-notes">${client.renewalNotes}</div>
+                    ` : ''}
+
+                    ${client.renewalTimeline && client.renewalTimeline.length > 0 ? `
+                    <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid #e5e7eb;">
+                        <div style="font-size: 0.75rem; color: #6b7280; text-transform: uppercase; font-weight: 600; margin-bottom: 8px;">Renewal Timeline</div>
+                        ${client.renewalTimeline.slice(-3).reverse().map(item => `
+                            <div class="timeline-item">
+                                <div class="timeline-date">${new Date(item.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</div>
+                                <div class="timeline-event">${item.event}${item.notes ? `: ${item.notes}` : ''}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    ` : ''}
+                `;
+
+                container.appendChild(card);
+            });
+        }
+
+        function getRenewalStatusBadge(status) {
+            const badges = {
+                'confirmed': '<span class="renewal-badge confirmed">✅ Confirmed</span>',
+                'discussion': '<span class="renewal-badge discussion">💬 In Discussion</span>',
+                'at-risk': '<span class="renewal-badge at-risk">⚠️ At Risk</span>',
+                'churned': '<span class="renewal-badge churned">❌ Churned</span>',
+                'pending': '<span class="renewal-badge pending">⏳ Pending</span>'
+            };
+            return badges[status] || badges['pending'];
+        }
+
+        function refreshRenewalPipeline() {
+            updateRenewalPipeline();
         }
 
         function openOffboardModal(clientId) {
@@ -1365,52 +1496,10 @@
                 updatedAt: new Date().toISOString()
             };
 
-            if (!updatedClient.timeline) {
-                updatedClient.timeline = [];
-            }
-            
-            updatedClient.timeline.push({
-                date: offboardDate,
-                event: "Client Offboarded",
-                score: calculateHealthScore(client),
-                type: "offboard"
-            });
-
             clientsRef.child(currentOffboardingClientId).set(updatedClient);
 
             closeOffboardModal();
             alert('Client offboarded successfully!');
-        }
-
-        function reactivateClient(clientId) {
-            if (!confirm('Are you sure you want to reactivate this client?')) return;
-
-            const client = clients.find(c => c.id === clientId);
-            if (!client) return;
-
-            const updatedClient = {
-                ...client,
-                isOffboarded: false,
-                reactivateDate: new Date().toISOString().split('T')[0],
-                updatedAt: new Date().toISOString()
-            };
-
-            delete updatedClient.offboardDate;
-
-            if (!updatedClient.timeline) {
-                updatedClient.timeline = [];
-            }
-            
-            updatedClient.timeline.push({
-                date: new Date().toISOString().split('T')[0],
-                event: "Client Reactivated",
-                score: calculateHealthScore(client),
-                type: "reactivate"
-            });
-
-            clientsRef.child(clientId).set(updatedClient);
-
-            alert('Client reactivated successfully!');
         }
 
         function updateDashboard() {
@@ -1440,514 +1529,13 @@
             document.getElementById('critical-clients').textContent = stats.critical;
             document.getElementById('offboarded-clients').textContent = stats.offboarded;
 
-            updateManagerPerformance();
-            updateMeetingsTable();
+            updateRenewalPipeline();
             updateTable();
-            updateAlerts();
-            updateCharts();
-        }
-
-        function updateMeetingsTable() {
-            const tableBody = document.getElementById('meetings-table');
-            tableBody.innerHTML = '';
-
-            const activeClients = clients.filter(c => !c.isOffboarded);
-            
-            // Create array of meetings
-            const meetings = [];
-            activeClients.forEach(client => {
-                const meeting = calculateNextMeeting(client.joinDate, client.offboardDate, client.completedMeetings || []);
-                if (meeting) {
-                    meetings.push({
-                        client: client,
-                        meeting: meeting
-                    });
-                }
-            });
-
-            // Sort by days until meeting
-            meetings.sort((a, b) => a.meeting.daysUntil - b.meeting.daysUntil);
-
-            // Display only next 10 meetings
-            meetings.slice(0, 10).forEach(item => {
-                const client = item.client;
-                const meeting = item.meeting;
-                
-                const meetingDateStr = meeting.date.toLocaleDateString('en-US', {
-                    weekday: 'short',
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric'
-                });
-                
-                let statusBadge = '';
-                if (meeting.daysUntil === 0) {
-                    statusBadge = '<span class="status-badge critical">🔴 TODAY</span>';
-                } else if (meeting.daysUntil <= 2) {
-                    statusBadge = '<span class="status-badge at-risk">🟠 URGENT</span>';
-                } else if (meeting.daysUntil <= 5) {
-                    statusBadge = '<span class="status-badge at-risk">🟡 SOON</span>';
-                } else {
-                    statusBadge = '<span class="status-badge healthy">🟢 UPCOMING</span>';
-                }
-                
-                const completedMeetingsText = client.completedMeetings && client.completedMeetings.length > 0 
-                    ? `<div style="font-size: 0.7rem; color: #16a34a; margin-top: 4px;">✓ Completed: ${getCompletedMeetingsList(client.completedMeetings)}</div>`
-                    : '';
-                
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>
-                        <strong>${client.name}</strong>
-                        ${completedMeetingsText}
-                    </td>
-                    <td>${client.accountManager || 'Not assigned'}</td>
-                    <td><span class="month-indicator">Day ${meeting.day}</span></td>
-                    <td>${meetingDateStr}</td>
-                    <td>${meeting.daysUntil === 0 ? 'Today' : meeting.daysUntil === 1 ? 'Tomorrow' : meeting.daysUntil + ' days'}</td>
-                    <td>
-                        ${statusBadge}
-                        <button class="btn btn-complete" onclick="markMeetingComplete('${client.id}', ${meeting.day})" style="margin-left: 8px;">✓ Mark Complete</button>
-                    </td>
-                `;
-                
-                tableBody.appendChild(row);
-            });
-
-            if (meetings.length === 0) {
-                const row = document.createElement('tr');
-                row.innerHTML = '<td colspan="6" style="text-align: center; color: #6b7280; padding: 30px;">No upcoming meetings scheduled</td>';
-                tableBody.appendChild(row);
-            }
-        }
-
-        function calculateManagerMetrics(managerName) {
-            const managerClients = clients.filter(client => {
-                if (managerName === 'Unassigned') {
-                    return !client.accountManager || client.accountManager.trim() === '';
-                }
-                return client.accountManager === managerName;
-            });
-
-            if (managerClients.length === 0) {
-                return {
-                    totalClients: 0,
-                    activeClients: 0,
-                    avgHealthScore: 0,
-                    retentionRate: 0,
-                    distribution: { healthy: 0, atRisk: 0, critical: 0, offboarded: 0 }
-                };
-            }
-
-            const activeClients = managerClients.filter(c => !c.isOffboarded);
-            const offboardedClients = managerClients.filter(c => c.isOffboarded);
-            
-            let totalHealthScore = 0;
-            let healthyCount = 0;
-            let atRiskCount = 0;
-            let criticalCount = 0;
-
-            activeClients.forEach(client => {
-                const healthScore = calculateHealthScore(client);
-                totalHealthScore += healthScore;
-                
-                const category = getHealthCategory(healthScore);
-                if (category.color === 'healthy') healthyCount++;
-                else if (category.color === 'at-risk') atRiskCount++;
-                else criticalCount++;
-            });
-
-            const avgHealthScore = activeClients.length > 0 ? (totalHealthScore / activeClients.length) : 0;
-            const retentionRate = managerClients.length > 0 ? ((activeClients.length / managerClients.length) * 100) : 0;
-
-            return {
-                totalClients: managerClients.length,
-                activeClients: activeClients.length,
-                avgHealthScore: avgHealthScore,
-                retentionRate: retentionRate,
-                distribution: {
-                    healthy: healthyCount,
-                    atRisk: atRiskCount,
-                    critical: criticalCount,
-                    offboarded: offboardedClients.length
-                }
-            };
-        }
-
-        function getUniqueManagers() {
-            const managers = new Set();
-            let hasUnassigned = false;
-
-            clients.forEach(client => {
-                if (client.accountManager && client.accountManager.trim() !== '') {
-                    managers.add(client.accountManager.trim());
-                } else {
-                    hasUnassigned = true;
-                }
-            });
-
-            const managersList = Array.from(managers).sort();
-            if (hasUnassigned) {
-                managersList.push('Unassigned');
-            }
-
-            return managersList;
-        }
-
-        function updateManagerPerformance() {
-            const container = document.getElementById('manager-cards-grid');
-            const managers = getUniqueManagers();
-
-            if (managers.length === 0) {
-                container.innerHTML = '<div class="no-managers-message">No account managers assigned yet. Assign managers to clients to see performance metrics.</div>';
-                return;
-            }
-
-            container.innerHTML = '';
-
-            managers.forEach(manager => {
-                const metrics = calculateManagerMetrics(manager);
-                const isUnassigned = manager === 'Unassigned';
-                
-                const initials = isUnassigned ? '?' : manager.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
-                
-                const card = document.createElement('div');
-                card.className = `manager-card ${isUnassigned ? 'no-manager' : ''}`;
-                card.onclick = () => filterByManager(manager);
-                
-                card.innerHTML = `
-                    <div class="manager-header">
-                        <div class="manager-info">
-                            <h3>${isUnassigned ? 'Unassigned Clients' : manager}</h3>
-                            <div class="client-count">${metrics.totalClients} total clients</div>
-                        </div>
-                        <div class="manager-avatar ${isUnassigned ? 'no-manager' : ''}">${initials}</div>
-                    </div>
-                    
-                    <div class="manager-metrics">
-                        <div class="metric-item">
-                            <div class="metric-value health-score">${metrics.avgHealthScore.toFixed(1)}</div>
-                            <div class="metric-label">Avg Health Score</div>
-                        </div>
-                        <div class="metric-item">
-                            <div class="metric-value retention-rate">${metrics.retentionRate.toFixed(0)}%</div>
-                            <div class="metric-label">Retention Rate</div>
-                        </div>
-                    </div>
-                    
-                    <div class="client-distribution">
-                        <div class="distribution-item healthy">
-                            <div>${metrics.distribution.healthy}</div>
-                            <div>Healthy</div>
-                        </div>
-                        <div class="distribution-item at-risk">
-                            <div>${metrics.distribution.atRisk}</div>
-                            <div>At Risk</div>
-                        </div>
-                        <div class="distribution-item critical">
-                            <div>${metrics.distribution.critical}</div>
-                            <div>Critical</div>
-                        </div>
-                        <div class="distribution-item offboarded">
-                            <div>${metrics.distribution.offboarded}</div>
-                            <div>Off.</div>
-                        </div>
-                    </div>
-                    
-                    <div class="manager-actions">
-                        <a href="#" class="action-link" onclick="event.stopPropagation(); filterByManager('${manager}')">View Clients</a>
-                        <a href="#" class="action-link secondary" onclick="event.stopPropagation(); scrollToTable()">Go to Table</a>
-                    </div>
-                `;
-                
-                container.appendChild(card);
-            });
-
-            updateManagerFilter();
-        }
-
-        function updateManagerFilter() {
-            const managerFilter = document.getElementById('manager-filter');
-            const managers = getUniqueManagers();
-            
-            managerFilter.innerHTML = '<option value="all">All Managers</option>';
-            
-            managers.forEach(manager => {
-                const option = document.createElement('option');
-                option.value = manager;
-                option.textContent = manager === 'Unassigned' ? 'Unassigned Clients' : manager;
-                managerFilter.appendChild(option);
-            });
-        }
-
-        function filterByManager(managerName) {
-            const managerFilter = document.getElementById('manager-filter');
-            managerFilter.value = managerName;
-            updateTable();
-            scrollToTable();
-        }
-
-        function scrollToTable() {
-            document.querySelector('.table-section').scrollIntoView({ 
-                behavior: 'smooth',
-                block: 'start'
-            });
-        }
-
-        function updateAlerts() {
-            const alertsContainer = document.getElementById('alerts-container');
-            const alertsSection = document.getElementById('alerts-section');
-            alertsContainer.innerHTML = '';
-            let alertCount = 0;
-            let urgentCount = 0;
-
-            const activeClients = clients.filter(c => !c.isOffboarded);
-
-            // Meeting alerts
-            activeClients.forEach(client => {
-                const meeting = calculateNextMeeting(client.joinDate, client.offboardDate, client.completedMeetings || []);
-                if (meeting && meeting.daysUntil <= 5 && !dismissedAlerts.has(`meeting-${client.id}-${meeting.day}`)) {
-                    const alertDiv = document.createElement('div');
-                    const urgency = meeting.daysUntil === 0 ? 'critical' : meeting.daysUntil <= 2 ? 'critical' : 'warning';
-                    alertDiv.className = `alert-item ${urgency}`;
-                    
-                    const meetingDateStr = meeting.date.toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric'
-                    });
-                    
-                    const daysText = meeting.daysUntil === 0 ? 'TODAY' : 
-                                    meeting.daysUntil === 1 ? 'tomorrow' : 
-                                    `in ${meeting.daysUntil} days`;
-                    
-                    alertDiv.innerHTML = `
-                        <div class="alert-content">
-                            <h4>📅 ${client.name} - Performance Meeting</h4>
-                            <p>Scheduled for ${meetingDateStr} (${daysText}) - Day ${meeting.day}</p>
-                        </div>
-                        <button class="dismiss-btn" onclick="dismissAlert('meeting-${client.id}-${meeting.day}', this)">✕</button>`;
-                    alertsContainer.appendChild(alertDiv);
-                    alertCount++;
-                    if (meeting.daysUntil <= 2) urgentCount++;
-                }
-            });
-
-            // Health alerts
-            activeClients.forEach(client => {
-                const score = calculateHealthScore(client);
-                const category = getHealthCategory(score);
-
-                if (category.color === 'critical' && !dismissedAlerts.has(`critical-${client.id}`)) {
-                    const alertDiv = document.createElement('div');
-                    alertDiv.className = 'alert-item critical';
-                    alertDiv.innerHTML = `
-                        <div class="alert-content">
-                            <h4>${client.name}</h4>
-                            <p>Client is in critical status (${score.toFixed(1)})</p>
-                        </div>
-                        <button class="dismiss-btn" onclick="dismissAlert('critical-${client.id}', this)">✕</button>`;
-                    alertsContainer.appendChild(alertDiv);
-                    alertCount++;
-                    urgentCount++;
-                }
-
-                if (category.color === 'at-risk' && !dismissedAlerts.has(`at-risk-${client.id}`)) {
-                    const alertDiv = document.createElement('div');
-                    alertDiv.className = 'alert-item warning';
-                    alertDiv.innerHTML = `
-                        <div class="alert-content">
-                            <h4>${client.name}</h4>
-                            <p>Client is at risk (${score.toFixed(1)})</p>
-                        </div>
-                        <button class="dismiss-btn" onclick="dismissAlert('at-risk-${client.id}', this)">✕</button>`;
-                    alertsContainer.appendChild(alertDiv);
-                    alertCount++;
-                }
-
-                if (client.sessionShowUp < 60 && !dismissedAlerts.has(`attendance-${client.id}`)) {
-                    const alertDiv = document.createElement('div');
-                    alertDiv.className = 'alert-item info';
-                    alertDiv.innerHTML = `
-                        <div class="alert-content">
-                            <h4>${client.name}</h4>
-                            <p>Low show up rate: ${client.sessionShowUp}%</p>
-                        </div>
-                        <button class="dismiss-btn" onclick="dismissAlert('attendance-${client.id}', this)">✕</button>`;
-                    alertsContainer.appendChild(alertDiv);
-                    alertCount++;
-                }
-
-                if (!client.paymentOnTime && !dismissedAlerts.has(`payment-${client.id}`)) {
-                    const alertDiv = document.createElement('div');
-                    alertDiv.className = 'alert-item critical';
-                    alertDiv.innerHTML = `
-                        <div class="alert-content">
-                            <h4>${client.name}</h4>
-                            <p>Payment is LATE - This impacts health score by 10%</p>
-                        </div>
-                        <button class="dismiss-btn" onclick="dismissAlert('payment-${client.id}', this)">✕</button>`;
-                    alertsContainer.appendChild(alertDiv);
-                    alertCount++;
-                    urgentCount++;
-                }
-
-                if (!client.earlySigns && !dismissedAlerts.has(`earlysigns-${client.id}`)) {
-                    const alertDiv = document.createElement('div');
-                    alertDiv.className = 'alert-item warning';
-                    alertDiv.innerHTML = `
-                        <div class="alert-content">
-                            <h4>${client.name}</h4>
-                            <p>Negative early signs feedback - This impacts health score by 20%</p>
-                        </div>
-                        <button class="dismiss-btn" onclick="dismissAlert('earlysigns-${client.id}', this)">✕</button>`;
-                    alertsContainer.appendChild(alertDiv);
-                    alertCount++;
-                }
-            });
-
-            document.getElementById('alert-count').textContent = alertCount;
-            document.getElementById('urgent-badge').style.display = urgentCount > 0 ? 'inline' : 'none';
-            document.getElementById('urgent-badge').textContent = urgentCount + ' Urgent';
-            
-            alertsSection.style.display = alertCount > 0 ? 'block' : 'none';
-        }
-
-        function dismissAlert(alertId, button) {
-            dismissedAlerts.add(alertId);
-            button.parentElement.remove();
-            const alertCount = document.querySelectorAll('.alert-item').length;
-            document.getElementById('alert-count').textContent = alertCount;
-            
-            const urgentAlerts = document.querySelectorAll('.alert-item.critical').length;
-            document.getElementById('urgent-badge').style.display = urgentAlerts > 0 ? 'inline' : 'none';
-            document.getElementById('urgent-badge').textContent = urgentAlerts + ' Urgent';
-            
-            if (alertCount === 0) {
-                document.getElementById('alerts-section').style.display = 'none';
-            }
-        }
-
-        function updateCharts() {
-            updateScoreChart();
-            updateDistributionChart();
-        }
-
-        function updateScoreChart() {
-            const chartContainer = document.getElementById('score-chart');
-            chartContainer.innerHTML = '';
-
-            if (clients.length === 0) {
-                chartContainer.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 60px;">No clients to display</div>';
-                return;
-            }
-
-            const barChart = document.createElement('div');
-            barChart.className = 'bar-chart';
-
-            clients.forEach(client => {
-                const score = calculateHealthScore(client);
-                const category = getHealthCategory(score, client.isOffboarded);
-                
-                const barContainer = document.createElement('div');
-                barContainer.style.flex = '1';
-                barContainer.style.position = 'relative';
-                barContainer.style.height = '100%';
-                
-                const bar = document.createElement('div');
-                bar.className = `bar ${category.color}`;
-                bar.style.height = `${(score / 10 * 100)}%`;
-                bar.textContent = client.isOffboarded ? 'OFF' : score.toFixed(1);
-                
-                const label = document.createElement('div');
-                label.className = 'bar-label';
-                label.textContent = client.name.length > 10 ? client.name.substring(0, 10) + '...' : client.name;
-                
-                barContainer.appendChild(bar);
-                barContainer.appendChild(label);
-                barChart.appendChild(barContainer);
-            });
-
-            chartContainer.appendChild(barChart);
-        }
-
-        function updateDistributionChart() {
-            const chartContainer = document.getElementById('distribution-chart');
-            chartContainer.innerHTML = '';
-
-            const stats = { healthy: 0, atRisk: 0, critical: 0, offboarded: 0 };
-            
-            clients.forEach(client => {
-                if (client.isOffboarded) {
-                    stats.offboarded++;
-                } else {
-                    const score = calculateHealthScore(client);
-                    const category = getHealthCategory(score);
-                    if (category.color === 'healthy') stats.healthy++;
-                    else if (category.color === 'at-risk') stats.atRisk++;
-                    else stats.critical++;
-                }
-            });
-
-            const total = clients.length;
-            if (total === 0) {
-                chartContainer.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 60px;">No clients to display</div>';
-                return;
-            }
-
-            const healthyPercent = (stats.healthy / total * 100);
-            const atRiskPercent = (stats.atRisk / total * 100);
-            const criticalPercent = (stats.critical / total * 100);
-            const offboardedPercent = (stats.offboarded / total * 100);
-
-            const pieContainer = document.createElement('div');
-            pieContainer.style.width = '200px';
-            pieContainer.style.height = '200px';
-            pieContainer.style.margin = '0 auto';
-            pieContainer.style.borderRadius = '50%';
-            pieContainer.style.background = `conic-gradient(
-                #16a34a 0% ${healthyPercent}%, 
-                #d97706 ${healthyPercent}% ${healthyPercent + atRiskPercent}%, 
-                #dc2626 ${healthyPercent + atRiskPercent}% ${healthyPercent + atRiskPercent + criticalPercent}%,
-                #6b7280 ${healthyPercent + atRiskPercent + criticalPercent}% 100%)`;
-
-            chartContainer.appendChild(pieContainer);
-
-            const legend = document.createElement('div');
-            legend.className = 'chart-legend';
-            
-            const chartData = [
-                { label: 'Healthy', count: stats.healthy, color: '#16a34a' },
-                { label: 'At Risk', count: stats.atRisk, color: '#d97706' },
-                { label: 'Critical', count: stats.critical, color: '#dc2626' },
-                { label: 'Offboarded', count: stats.offboarded, color: '#6b7280' }
-            ];
-
-            chartData.forEach(item => {
-                if (item.count > 0) {
-                    const legendItem = document.createElement('div');
-                    legendItem.className = 'legend-item';
-                    
-                    const colorBox = document.createElement('div');
-                    colorBox.className = 'legend-color';
-                    colorBox.style.backgroundColor = item.color;
-                    
-                    const text = document.createElement('span');
-                    text.textContent = `${item.label} (${item.count})`;
-                    
-                    legendItem.appendChild(colorBox);
-                    legendItem.appendChild(text);
-                    legend.appendChild(legendItem);
-                }
-            });
-            
-            chartContainer.appendChild(legend);
         }
 
         function updateTable() {
             const tableBody = document.getElementById('client-table');
             const statusFilter = document.getElementById('client-status-filter').value;
-            const managerFilter = document.getElementById('manager-filter').value;
             tableBody.innerHTML = '';
 
             let filteredClients = clients;
@@ -1957,66 +1545,26 @@
             } else if (statusFilter === 'offboarded') {
                 filteredClients = filteredClients.filter(c => c.isOffboarded);
             }
-            
-            if (managerFilter !== 'all') {
-                if (managerFilter === 'Unassigned') {
-                    filteredClients = filteredClients.filter(c => !c.accountManager || c.accountManager.trim() === '');
-                } else {
-                    filteredClients = filteredClients.filter(c => c.accountManager === managerFilter);
-                }
-            }
 
             filteredClients.forEach(client => {
                 const healthScore = calculateHealthScore(client);
                 const category = getHealthCategory(healthScore, client.isOffboarded);
-                const clientMonth = calculateClientMonth(client.joinDate, client.offboardDate);
-                const daysSinceJoin = calculateDaysSinceJoin(client.joinDate, client.offboardDate);
-
-                const joinDate = client.joinDate ? new Date(client.joinDate).toLocaleDateString('en-US', {
+                
+                const contractEndDate = client.contractEndDate ? new Date(client.contractEndDate).toLocaleDateString('en-US', {
                     year: 'numeric',
                     month: 'short',
                     day: 'numeric'
-                }) : 'N/A';
+                }) : 'Not set';
 
-                const offboardDate = client.offboardDate ? new Date(client.offboardDate).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric'
-                }) : null;
+                const daysUntil = client.contractEndDate ? calculateDaysUntilRenewal(client.contractEndDate) : null;
+                let renewalInfo = contractEndDate;
+                if (daysUntil !== null && daysUntil >= 0) {
+                    renewalInfo += ` (${daysUntil} days)`;
+                } else if (daysUntil !== null && daysUntil < 0) {
+                    renewalInfo += ` (EXPIRED)`;
+                }
 
-                const meeting = calculateNextMeeting(client.joinDate, client.offboardDate, client.completedMeetings || []);
-                let meetingHtml = '';
-                
-                if (meeting) {
-                    const meetingDateStr = meeting.date.toLocaleDateString('en-US', {
-                        month: 'short',
-                        day: 'numeric'
-                    });
-                    
-                    let meetingClass = 'upcoming';
-                    let meetingText = '';
-                    
-                    if (meeting.daysUntil === 0) {
-                        meetingClass = 'today';
-                        meetingText = `📅 Performance Meeting TODAY (Day ${meeting.day})`;
-                    } else if (meeting.daysUntil <= 2) {
-                        meetingClass = 'soon';
-                        meetingText = `📅 Performance Meeting in ${meeting.daysUntil} day${meeting.daysUntil > 1 ? 's' : ''} - ${meetingDateStr} (Day ${meeting.day})`;
-                    } else if (meeting.daysUntil <= 5) {
-                        meetingClass = 'soon';
-                        meetingText = `📅 Performance Meeting in ${meeting.daysUntil} days - ${meetingDateStr} (Day ${meeting.day})`;
-                    } else {
-                        meetingClass = 'upcoming';
-                        meetingText = `📅 Next Meeting: ${meetingDateStr} (Day ${meeting.day})`;
-                    }
-                    
-                    meetingHtml = `<div class="meeting-indicator ${meetingClass}">${meetingText}</div>`;
-                }
-                
-                // Show completed meetings history
-                if (client.completedMeetings && client.completedMeetings.length > 0) {
-                    meetingHtml += `<div class="meeting-history">✓ Completed: ${getCompletedMeetingsList(client.completedMeetings)}</div>`;
-                }
+                const renewalStatusBadge = getRenewalStatusBadge(client.renewalStatus || 'pending');
 
                 const row = document.createElement('tr');
                 if (client.isOffboarded) {
@@ -2026,43 +1574,18 @@
                 row.innerHTML = `
                     <td>
                         <strong>${client.name}</strong>
-                        <span class="days-counter">${getOrdinal(daysSinceJoin)} Day</span>
-                        <div class="join-date">Joined: ${joinDate}</div>
-                        ${meetingHtml}
-                        ${client.isOffboarded && offboardDate ? `<div class="offboard-date">Offboarded: ${offboardDate}</div>` : ''}
-                    </td>
-                    <td>
-                        <span class="month-indicator">${getOrdinal(clientMonth)} Month</span>
                     </td>
                     <td>
                         <div class="account-manager">${client.accountManager || 'Not assigned'}</div>
                     </td>
-                    <td>${client.nps.toFixed(1)}/10</td>
-                    <td>${client.sessionShowUp}%</td>
-                    <td>${client.participationLevel.toFixed(1)}/10</td>
-                    <td>
-                        <span class="status-badge ${client.paymentOnTime ? 'healthy' : 'critical'}">
-                            ${client.paymentOnTime ? '✓ On Time' : '⚠ Late'}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="status-badge ${client.videoWentViral ? 'healthy' : 'critical'}">
-                            ${client.videoWentViral ? '🔥 Yes' : '❌ No'}
-                        </span>
-                    </td>
-                    <td>
-                        <span class="status-badge ${client.earlySigns ? 'healthy' : 'critical'}">
-                            ${client.earlySigns ? '👍 Positive' : '👎 Negative'}
-                        </span>
-                    </td>
+                    <td>${renewalInfo}</td>
+                    <td>${renewalStatusBadge}</td>
                     <td><strong>${client.isOffboarded ? 'N/A' : healthScore.toFixed(1)}</strong></td>
                     <td><span class="status-badge ${category.color}">${category.label}</span></td>
                     <td>
-                        <div class="notes">${client.notes || ''}</div>
-                    </td>
-                    <td>
                         <div class="action-buttons">
                             ${!client.isOffboarded ? `
+                                <button class="action-btn edit-btn" onclick="openRenewalModal('${client.id}')" title="Update Renewal">📝</button>
                                 <button class="action-btn edit-btn" onclick="editClient('${client.id}')" title="Edit Client">✏️</button>
                                 <button class="action-btn offboard-btn" onclick="openOffboardModal('${client.id}')" title="Offboard Client">🏃‍♂️</button>
                             ` : `
@@ -2074,12 +1597,6 @@
                 
                 tableBody.appendChild(row);
             });
-        }
-
-        function getOrdinal(num) {
-            const suffixes = ["th", "st", "nd", "rd"];
-            const v = num % 100;
-            return num + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
         }
 
         function toggleForm() {
@@ -2099,6 +1616,7 @@
             
             document.getElementById('name').value = '';
             document.getElementById('join-date').value = new Date().toISOString().split('T')[0];
+            document.getElementById('contract-end-date').value = '';
             document.getElementById('account-manager').value = '';
             document.getElementById('nps').value = '7';
             document.getElementById('showup').value = '85';
@@ -2106,7 +1624,10 @@
             document.getElementById('payment-status').value = 'true';
             document.getElementById('video-viral').value = 'false';
             document.getElementById('early-signs').value = 'true';
+            document.getElementById('form-renewal-status').value = 'pending';
+            document.getElementById('contract-value').value = '';
             document.getElementById('notes').value = '';
+            document.getElementById('form-renewal-notes').value = '';
         }
 
         function cancelForm() {
@@ -2122,11 +1643,6 @@
                 return;
             }
 
-            if (client.isOffboarded) {
-                alert('Cannot edit offboarded clients. Please reactivate first.');
-                return;
-            }
-
             currentEditingClientId = id;
             
             document.getElementById('form-title').textContent = 'Edit Client';
@@ -2135,6 +1651,7 @@
             
             document.getElementById('name').value = client.name;
             document.getElementById('join-date').value = client.joinDate || '';
+            document.getElementById('contract-end-date').value = client.contractEndDate || '';
             document.getElementById('account-manager').value = client.accountManager || '';
             document.getElementById('nps').value = client.nps;
             document.getElementById('showup').value = client.sessionShowUp;
@@ -2142,7 +1659,10 @@
             document.getElementById('payment-status').value = (client.paymentOnTime !== undefined ? client.paymentOnTime : true).toString();
             document.getElementById('video-viral').value = (client.videoWentViral !== undefined ? client.videoWentViral : false).toString();
             document.getElementById('early-signs').value = (client.earlySigns !== undefined ? client.earlySigns : true).toString();
+            document.getElementById('form-renewal-status').value = client.renewalStatus || 'pending';
+            document.getElementById('contract-value').value = client.contractValue || '';
             document.getElementById('notes').value = client.notes || '';
+            document.getElementById('form-renewal-notes').value = client.renewalNotes || '';
             
             document.getElementById('client-form').classList.remove('hidden');
         }
@@ -2155,6 +1675,7 @@
 
             const name = document.getElementById('name').value.trim();
             const joinDate = document.getElementById('join-date').value;
+            const contractEndDate = document.getElementById('contract-end-date').value;
             const accountManager = document.getElementById('account-manager').value.trim();
             const nps = parseFloat(document.getElementById('nps').value) || 7;
             const sessionShowUp = parseInt(document.getElementById('showup').value) || 85;
@@ -2162,7 +1683,10 @@
             const paymentOnTime = document.getElementById('payment-status').value === 'true';
             const videoWentViral = document.getElementById('video-viral').value === 'true';
             const earlySigns = document.getElementById('early-signs').value === 'true';
+            const renewalStatus = document.getElementById('form-renewal-status').value;
+            const contractValue = document.getElementById('contract-value').value;
             const notes = document.getElementById('notes').value.trim();
+            const renewalNotes = document.getElementById('form-renewal-notes').value.trim();
 
             if (!name) {
                 alert('Please enter a client name');
@@ -2180,20 +1704,11 @@
                 return;
             }
 
-            const tempClient = {
-                nps: nps,
-                sessionShowUp: sessionShowUp,
-                participationLevel: participationLevel,
-                paymentOnTime: paymentOnTime,
-                videoWentViral: videoWentViral,
-                earlySigns: earlySigns
-            };
-            const newScore = calculateHealthScore(tempClient);
-
             const updatedClient = {
                 ...existingClient,
                 name: name,
                 joinDate: joinDate,
+                contractEndDate: contractEndDate || null,
                 accountManager: accountManager,
                 nps: nps,
                 sessionShowUp: sessionShowUp,
@@ -2201,31 +1716,23 @@
                 paymentOnTime: paymentOnTime,
                 videoWentViral: videoWentViral,
                 earlySigns: earlySigns,
+                renewalStatus: renewalStatus,
+                contractValue: contractValue ? parseFloat(contractValue) : null,
                 notes: notes,
+                renewalNotes: renewalNotes,
                 updatedAt: new Date().toISOString()
             };
-
-            if (!updatedClient.timeline) {
-                updatedClient.timeline = [];
-            }
-            
-            updatedClient.timeline.push({
-                date: new Date().toISOString().split('T')[0],
-                event: "Client Data Updated",
-                score: newScore,
-                type: "update"
-            });
 
             clientsRef.child(currentEditingClientId).set(updatedClient);
 
             cancelForm();
-            
             alert('Client updated successfully!');
         }
 
         function addClient() {
             const name = document.getElementById('name').value.trim();
             const joinDate = document.getElementById('join-date').value;
+            const contractEndDate = document.getElementById('contract-end-date').value;
             const accountManager = document.getElementById('account-manager').value.trim();
             const nps = parseFloat(document.getElementById('nps').value) || 7;
             const sessionShowUp = parseInt(document.getElementById('showup').value) || 85;
@@ -2233,7 +1740,10 @@
             const paymentOnTime = document.getElementById('payment-status').value === 'true';
             const videoWentViral = document.getElementById('video-viral').value === 'true';
             const earlySigns = document.getElementById('early-signs').value === 'true';
+            const renewalStatus = document.getElementById('form-renewal-status').value;
+            const contractValue = document.getElementById('contract-value').value;
             const notes = document.getElementById('notes').value.trim();
+            const renewalNotes = document.getElementById('form-renewal-notes').value.trim();
 
             if (!name) {
                 alert('Please enter a client name');
@@ -2245,20 +1755,11 @@
                 return;
             }
 
-            const tempClient = {
-                nps: nps,
-                sessionShowUp: sessionShowUp,
-                participationLevel: participationLevel,
-                paymentOnTime: paymentOnTime,
-                videoWentViral: videoWentViral,
-                earlySigns: earlySigns
-            };
-            const currentScore = calculateHealthScore(tempClient);
-
             const newClient = {
                 id: Date.now().toString(),
                 name: name,
                 joinDate: joinDate,
+                contractEndDate: contractEndDate || null,
                 accountManager: accountManager,
                 nps: nps,
                 sessionShowUp: sessionShowUp,
@@ -2266,16 +1767,11 @@
                 paymentOnTime: paymentOnTime,
                 videoWentViral: videoWentViral,
                 earlySigns: earlySigns,
+                renewalStatus: renewalStatus,
+                contractValue: contractValue ? parseFloat(contractValue) : null,
                 notes: notes,
+                renewalNotes: renewalNotes,
                 isOffboarded: false,
-                timeline: [
-                    { 
-                        date: joinDate, 
-                        event: "Client Onboarded", 
-                        score: currentScore, 
-                        type: "milestone" 
-                    }
-                ],
                 createdAt: new Date().toISOString()
             };
 
@@ -2294,6 +1790,26 @@
             }
         }
 
+        function reactivateClient(clientId) {
+            if (!confirm('Are you sure you want to reactivate this client?')) return;
+
+            const client = clients.find(c => c.id === clientId);
+            if (!client) return;
+
+            const updatedClient = {
+                ...client,
+                isOffboarded: false,
+                reactivateDate: new Date().toISOString().split('T')[0],
+                updatedAt: new Date().toISOString()
+            };
+
+            delete updatedClient.offboardDate;
+
+            clientsRef.child(clientId).set(updatedClient);
+
+            alert('Client reactivated successfully!');
+        }
+
         function updateSyncIndicator(isConnected) {
             const dot = document.getElementById('sync-dot');
             const status = document.getElementById('sync-status');
@@ -2308,9 +1824,13 @@
         }
 
         window.onclick = function(event) {
-            const modal = document.getElementById('offboard-modal');
-            if (event.target === modal) {
+            const offboardModal = document.getElementById('offboard-modal');
+            const renewalModal = document.getElementById('renewal-modal');
+            if (event.target === offboardModal) {
                 closeOffboardModal();
+            }
+            if (event.target === renewalModal) {
+                closeRenewalModal();
             }
         }
 
@@ -2325,69 +1845,6 @@
         const connectedRef = database.ref('.info/connected');
         connectedRef.on('value', (snapshot) => {
             updateSyncIndicator(snapshot.val() === true);
-        });
-
-        // Initialize with sample data if database is empty
-        clientsRef.once('value', (snapshot) => {
-            if (!snapshot.exists()) {
-                const sampleClients = [
-                    {
-                        id: '1',
-                        name: "Healthy Client Co.",
-                        joinDate: "2024-01-15",
-                        accountManager: "Sarah Johnson",
-                        nps: 9,
-                        sessionShowUp: 95,
-                        participationLevel: 8.5,
-                        paymentOnTime: true,
-                        videoWentViral: true,
-                        earlySigns: true,
-                        notes: "Excellent engagement, viral video last month",
-                        isOffboarded: false,
-                        timeline: [
-                            { date: "2024-01-15", event: "Client Onboarded", score: 9.2, type: "milestone" }
-                        ]
-                    },
-                    {
-                        id: '2',
-                        name: "At-Risk Client Inc.",
-                        joinDate: "2024-03-01",
-                        accountManager: "Mike Chen",
-                        nps: 7,
-                        sessionShowUp: 75,
-                        participationLevel: 6,
-                        paymentOnTime: true,
-                        videoWentViral: false,
-                        earlySigns: true,
-                        notes: "Needs more engagement, no viral content yet",
-                        isOffboarded: false,
-                        timeline: [
-                            { date: "2024-03-01", event: "Client Onboarded", score: 7.1, type: "milestone" }
-                        ]
-                    },
-                    {
-                        id: '3',
-                        name: "Critical Client LLC",
-                        joinDate: "2024-06-10",
-                        accountManager: "Jennifer Rodriguez",
-                        nps: 4,
-                        sessionShowUp: 45,
-                        participationLevel: 3,
-                        paymentOnTime: false,
-                        videoWentViral: false,
-                        earlySigns: false,
-                        notes: "Requires immediate intervention - payment late, negative feedback",
-                        isOffboarded: false,
-                        timeline: [
-                            { date: "2024-06-10", event: "Client Onboarded", score: 4.2, type: "milestone" }
-                        ]
-                    }
-                ];
-
-                sampleClients.forEach(client => {
-                    clientsRef.child(client.id).set(client);
-                });
-            }
         });
     </script>
 </body>
